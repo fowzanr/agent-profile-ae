@@ -4,6 +4,12 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
 import { BRN_PATTERN } from "@/lib/validation";
+import { getClientIp, rateLimit, rateLimitResponse } from "@/lib/rateLimit";
+import { generateToken, hashToken } from "@/lib/authTokens";
+import { siteUrl } from "@/lib/siteUrl";
+import { sendEmail } from "@/lib/email";
+
+const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 
 const signupSchema = z.object({
   name: z.string().min(2, "Enter your full name"),
@@ -24,6 +30,9 @@ function initialsOf(name: string): string {
 }
 
 export async function POST(req: Request) {
+  const limit = rateLimit(`signup:${getClientIp(req)}`, 5, 60 * 60 * 1000);
+  if (!limit.ok) return rateLimitResponse(limit.retryAfterSeconds);
+
   const body = await req.json().catch(() => null);
   const parsed = signupSchema.safeParse(body);
 
@@ -53,6 +62,7 @@ export async function POST(req: Request) {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
+  const verificationToken = generateToken();
 
   const agent = await prisma.agent.create({
     data: {
@@ -72,8 +82,28 @@ export async function POST(req: Request) {
       specialities: "",
       areas: "",
       languages: "English",
+      emailVerificationTokenHash: hashToken(verificationToken),
+      emailVerificationExpiresAt: new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS),
     },
   });
+
+  const verifyLink = `${siteUrl()}/verify-email?token=${verificationToken}`;
+  const result = await sendEmail({
+    to: email,
+    subject: "Confirm your email — agentprofile.ae",
+    text: [
+      `Hi ${name},`,
+      "",
+      "Confirm your email to finish setting up your agentprofile.ae page:",
+      verifyLink,
+      "",
+      "This link expires in 24 hours.",
+    ].join("\n"),
+  }).catch(() => ({ sent: false }));
+
+  if (!result.sent) {
+    console.warn(`[dev] email not configured — verification link for ${email}: ${verifyLink}`);
+  }
 
   return NextResponse.json({ slug: agent.slug });
 }

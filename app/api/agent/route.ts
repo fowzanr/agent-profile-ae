@@ -57,23 +57,32 @@ export async function PATCH(req: Request) {
   if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl || null;
   if (data.transactedVolume !== undefined) updateData.transactedVolume = data.transactedVolume === "" ? null : data.transactedVolume;
 
-  if (data.slug !== undefined) {
+  if (data.slug !== undefined || data.submittedForReview === true) {
     const current = await prisma.agent.findUnique({
       where: { id: session.user.id },
-      select: { slug: true },
+      select: { slug: true, emailVerifiedAt: true },
     });
     if (!current) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    if (RESERVED_SLUGS.has(data.slug)) {
-      return NextResponse.json({ error: "That URL isn't available" }, { status: 409 });
-    }
-    if (data.slug !== current.slug) {
-      const taken = await prisma.agent.findUnique({ where: { slug: data.slug } });
-      if (taken) {
-        return NextResponse.json({ error: "That URL is already taken" }, { status: 409 });
+    if (data.slug !== undefined) {
+      if (RESERVED_SLUGS.has(data.slug)) {
+        return NextResponse.json({ error: "That URL isn't available" }, { status: 409 });
       }
+      if (data.slug !== current.slug) {
+        const taken = await prisma.agent.findUnique({ where: { slug: data.slug } });
+        if (taken) {
+          return NextResponse.json({ error: "That URL is already taken" }, { status: 409 });
+        }
+      }
+    }
+
+    if (data.submittedForReview === true && !current.emailVerifiedAt) {
+      return NextResponse.json(
+        { error: "Confirm your email before submitting your profile for review." },
+        { status: 400 },
+      );
     }
   }
 

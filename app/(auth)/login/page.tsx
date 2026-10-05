@@ -74,7 +74,12 @@ export default function LoginPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="password">Password</label>
+            <div className="field-label-row">
+              <label htmlFor="password">Password</label>
+              <Link href="/forgot-password" style={{ fontSize: 12.5, fontWeight: 600, color: "var(--primary)" }}>
+                Forgot password?
+              </Link>
+            </div>
             <input
               id="password"
               type="password"
@@ -91,9 +96,6 @@ export default function LoginPage() {
 
           <p className="auth-alt">
             New here? <Link href="/signup">Create a profile</Link>
-          </p>
-          <p className="auth-alt" style={{ fontSize: 11.5 }}>
-            Demo: ahmed@vantage.ae / password123
           </p>
         </form>
       </div>

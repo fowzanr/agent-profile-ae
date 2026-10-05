@@ -15,6 +15,11 @@ model Agent {
   slug           String   @unique
   email          String   @unique
   passwordHash   String
+  emailVerifiedAt           DateTime? // null until the agent confirms their email
+  emailVerificationTokenHash String?  @unique // sha256 of the emailed token, never the raw token
+  emailVerificationExpiresAt DateTime?
+  passwordResetTokenHash    String?  @unique // sha256 of the emailed token, never the raw token
+  passwordResetExpiresAt    DateTime?
   name           String
   agency         String
   avatarInitials String

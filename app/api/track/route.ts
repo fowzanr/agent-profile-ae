@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { getClientIp, rateLimit } from "@/lib/rateLimit";
 
 const trackSchema = z.object({
   agentId: z.string().min(1),
@@ -17,10 +18,16 @@ const trackSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  // Fire-and-forget beacon — the client never reads the response, so a
+  // rate-limited or malformed request just gets silently dropped rather
+  // than surfaced as an error.
+  const limit = rateLimit(`track:${getClientIp(req)}`, 60, 60 * 1000);
+  if (!limit.ok) return new NextResponse(null, { status: 204 });
+
   const body = await req.json().catch(() => null);
   const parsed = trackSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    return new NextResponse(null, { status: 204 });
   }
 
   const { agentId, type, propertyId } = parsed.data;

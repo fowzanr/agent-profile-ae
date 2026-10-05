@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
+import { getClientIp, rateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
 const createSchema = z.object({
   agentId: z.string().min(1),
@@ -14,6 +15,9 @@ const createSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const limit = rateLimit(`lead:${getClientIp(req)}`, 10, 10 * 60 * 1000);
+  if (!limit.ok) return rateLimitResponse(limit.retryAfterSeconds);
+
   const body = await req.json().catch(() => null);
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {

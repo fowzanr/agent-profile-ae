@@ -385,6 +385,7 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
   const [slugMsg, setSlugMsg] = useState<string | null>(null);
   const [savingAvailability, setSavingAvailability] = useState(false);
   const [submittedForReview, setSubmittedForReview] = useState(agent.submittedForReview);
+  const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "sent">("idle");
   const isApproved = agent.isApproved;
   // Only ever rendered inside the Profile tab, which isn't the default view — always past hydration by then.
   const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -583,6 +584,16 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
 
     setSubmittedForReview(true);
     refreshPreview();
+  }
+
+  async function resendVerification() {
+    setResendStatus("loading");
+    await fetch("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: agent.email }),
+    }).catch(() => {});
+    setResendStatus("sent");
   }
 
   async function generateBioText() {
@@ -1728,24 +1739,55 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
 
               {!submittedForReview ? (
                 <div className="dash-card">
-                  <SectionHeader
-                    tone="gold"
-                    icon={<ClockIcon className="w-4 h-4" />}
-                    title="Ready to go live?"
-                    sub={
-                      LISTINGS_ENABLED
-                        ? "Our team reviews new profiles before they go public. You'll also need at least one listing."
-                        : "Our team reviews new profiles before they go public."
-                    }
-                  />
-                  <button
-                    className="btn-primary"
-                    onClick={submitForApproval}
-                    disabled={submitting}
-                    style={{ alignSelf: "flex-start", minWidth: 180 }}
-                  >
-                    {submitting ? "Submitting…" : "Submit for Approval"}
-                  </button>
+                  {!agent.emailVerifiedAt ? (
+                    <>
+                      <SectionHeader
+                        tone="gold"
+                        icon={<MailIcon className="w-4 h-4" />}
+                        title="Confirm your email first"
+                        sub="We need to know your email actually reaches you before your profile can go live."
+                      />
+                      {resendStatus === "sent" ? (
+                        <div className="status-banner tone-live">
+                          <CheckIcon className="w-4 h-4" />
+                          <div>
+                            <div className="status-banner-title">Check your inbox</div>
+                            <div className="status-banner-sub">We sent a confirmation link to {agent.email}.</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          className="btn-primary"
+                          onClick={resendVerification}
+                          disabled={resendStatus === "loading"}
+                          style={{ alignSelf: "flex-start", minWidth: 180 }}
+                        >
+                          {resendStatus === "loading" ? "Sending…" : "Send confirmation link"}
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <SectionHeader
+                        tone="gold"
+                        icon={<ClockIcon className="w-4 h-4" />}
+                        title="Ready to go live?"
+                        sub={
+                          LISTINGS_ENABLED
+                            ? "Our team reviews new profiles before they go public. You'll also need at least one listing."
+                            : "Our team reviews new profiles before they go public."
+                        }
+                      />
+                      <button
+                        className="btn-primary"
+                        onClick={submitForApproval}
+                        disabled={submitting}
+                        style={{ alignSelf: "flex-start", minWidth: 180 }}
+                      >
+                        {submitting ? "Submitting…" : "Submit for Approval"}
+                      </button>
+                    </>
+                  )}
                 </div>
               ) : (
                 !isApproved && (
