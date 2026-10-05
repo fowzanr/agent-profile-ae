@@ -1,0 +1,143 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  email          String   @unique
+  passwordHash   String
+  name           String
+  agency         String
+  avatarInitials String
+  photoUrl       String?
+  accountType    String   @default("agent") // "agent" | "agency"
+  brn            String
+  dedLicensed    Boolean  @default(true)
+  role           String
+  bio            String
+  yearsExperience Int
+  whatsapp       String
+  phone          String
+  contactEmail   String
+  instagramUrl   String?
+  linkedinUrl    String?
+  tiktokUrl      String?
+  specialities   String // comma-separated
+  areas          String // comma-separated
+  languages      String // comma-separated
+  onboarded      Boolean  @default(false)
+  isPro          Boolean  @default(false)
+  submittedForReview Boolean @default(false)
+  isApproved     Boolean  @default(false)
+  brnVerifiedAt    DateTime? // admin confirms BRN/DED license checked against official records before approval
+  socialVerifiedAt DateTime? // admin confirms social media profiles checked before approval
+  isVerified     Boolean  @default(false) // admin-controlled; badge only shows if also isPro
+  availabilityStatus String @default("available") // "available" | "busy" — Pro feature
+  manualForSaleCount Int    @default(0) // agent-entered "X for sale" shown on public profile while real listings are hidden
+  transactedVolume   Int?   // optional agent-entered total transacted sales volume in AED, shown as a public profile stat
+  manualForRentCount Int    @default(0) // agent-entered "X for rent" shown on public profile while real listings are hidden
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  properties      Property[]
+  testimonials    Testimonial[]
+  links           AgentLink[]
+  analyticsEvents AnalyticsEvent[]
+  leads           Lead[]
+}
+
+model AgentLink {
+  id        String   @id @default(cuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  label     String
+  url       String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Property {
+  id          String   @id @default(cuid())
+  agentId     String
+  agent       Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  title       String
+  location    String
+  price       Int
+  listingType  String // "sale" | "rent"
+  status       String // "ready" | "offplan" — meaningful for sale listings
+  rentalPeriod String? // "yearly" | "monthly" | "weekly" | "daily" — set when listingType is "rent"
+  beds        Int
+  baths       Int
+  sqft        Int // built-up area
+  description String
+  handoverNote String?
+
+  propertyType      String  @default("Apartment") // "Apartment" | "Villa" | "Townhouse" | "Penthouse" | "Studio" | "Duplex" | "Office" | "Retail"
+  furnishing        String  @default("unfurnished") // "furnished" | "unfurnished" | "partly"
+  ownership         String  @default("freehold") // "freehold" | "leasehold"
+  usage             String  @default("residential") // "residential" | "commercial"
+  hasParking        Boolean @default(false)
+  hasBalcony        Boolean @default(false)
+  plotArea          Int? // sqft, villas/townhouses
+  completionPercent Int? // 0-100, off-plan sale listings
+  expectedRentYearly Int? // AED/yr, investor estimate for sale listings
+
+  image1 String?
+  image2 String?
+  image3 String?
+
+  isFeatured Boolean @default(false) // Pro feature — badge + sorted first on the profile
+
+  imageSeed   Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  analyticsEvents AnalyticsEvent[]
+  leads           Lead[]
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  quote     String
+  author    String
+  rating    Int      @default(5)
+  createdAt DateTime @default(now())
+}
+
+model Lead {
+  id         String    @id @default(cuid())
+  agentId    String
+  agent      Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  name       String
+  contact    String
+  message    String?
+  channel    String // "whatsapp" | "call" | "email" | "book" | "form"
+  createdAt  DateTime  @default(now())
+
+  @@index([agentId, createdAt])
+}
+
+model AnalyticsEvent {
+  id         String    @id @default(cuid())
+  agentId    String
+  agent      Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  type       String // "profile_view" | "listing_view" | "whatsapp_click" | "call_click" | "email_click" | "book_click" | "share"
+  createdAt  DateTime  @default(now())
+
+  @@index([agentId, createdAt])
+}
