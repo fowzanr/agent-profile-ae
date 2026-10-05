@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # local dev database — contains real password hashes and user data, never commit
 /prisma/dev.db
