@@ -1215,34 +1215,46 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
 .land-feature-body { font-size: 13px; line-height: 1.55; color: var(--text-muted); margin: 0; }
 
 /* ---------- landing: how it works ---------- */
-.land-steps { padding: 20px 24px 64px; max-width: 1120px; margin: 0 auto; width: 100%; text-align: center; }
+.land-steps { padding: 24px 24px 80px; max-width: 1120px; margin: 0 auto; width: 100%; text-align: center; }
 .land-steps h2 {
   font-family: var(--font-jakarta), sans-serif; font-weight: 800; font-size: 28px; text-align: center;
-  max-width: 560px; margin: 0 auto 48px; text-wrap: balance; letter-spacing: -0.01em;
+  max-width: 560px; margin: 0 auto 60px; text-wrap: balance; letter-spacing: -0.01em;
 }
-@media (max-width: 560px) { .land-steps h2 { font-size: 22px; } }
-.land-steps-row { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; text-align: left; }
+@media (max-width: 560px) { .land-steps h2 { font-size: 22px; margin-bottom: 44px; } }
+.land-steps-row { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; text-align: left; }
 .land-steps-row::before {
-  content: ""; position: absolute; top: 23px; left: calc(100% / 6); right: calc(100% / 6); height: 2px;
-  background: var(--border); z-index: 0;
+  content: ""; position: absolute; top: 30px; left: calc(100% / 6); right: calc(100% / 6); height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--gold), var(--accent3)); opacity: .5; z-index: 0;
 }
 @media (max-width: 760px) {
-  .land-steps-row { grid-template-columns: 1fr; gap: 28px; }
+  .land-steps-row { grid-template-columns: 1fr; gap: 44px; }
   .land-steps-row::before { display: none; }
 }
-.land-step { position: relative; display: flex; flex-direction: column; gap: 12px; }
+.land-step {
+  position: relative; display: flex; flex-direction: column; gap: 12px;
+  opacity: 0; transform: translateY(18px); transition: opacity 560ms ease, transform 560ms ease;
+}
+.land-step.in-view { opacity: 1; transform: translateY(0); }
+.land-step:nth-child(1) { transition-delay: 0ms; }
+.land-step:nth-child(2) { transition-delay: 140ms; }
+.land-step:nth-child(3) { transition-delay: 280ms; }
+.land-step-watermark {
+  position: absolute; top: -32px; left: -4px; font-family: var(--font-jakarta), sans-serif; font-weight: 800;
+  font-size: 72px; line-height: 1; letter-spacing: -0.05em; z-index: 0; pointer-events: none; user-select: none;
+}
+.land-step.tone-primary .land-step-watermark { color: var(--primary-soft); }
+.land-step.tone-gold .land-step-watermark { color: var(--gold-soft); }
+.land-step.tone-accent3 .land-step-watermark { color: var(--accent3-soft); }
 .land-step-icon {
-  position: relative; z-index: 1; width: 46px; height: 46px; border-radius: 50%;
-  background: var(--primary); color: var(--primary-ink); display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 0 6px var(--bg);
+  position: relative; z-index: 1; width: 60px; height: 60px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; color: #fff;
+  box-shadow: 0 0 0 6px var(--bg), var(--shadow);
 }
-.land-step-num {
-  position: absolute; top: -6px; left: 30px; width: 20px; height: 20px; border-radius: 50%; z-index: 2;
-  background: var(--gold); color: var(--gold-ink); font-family: var(--font-jakarta), sans-serif; font-weight: 800; font-size: 10.5px;
-  display: flex; align-items: center; justify-content: center;
-}
-.land-step-title { font-family: var(--font-jakarta), sans-serif; font-weight: 700; font-size: 15.5px; color: var(--text); margin-top: 2px; }
-.land-step-body { font-size: 13px; line-height: 1.55; color: var(--text-muted); margin: 0; max-width: 280px; }
+.land-step.tone-primary .land-step-icon { background: radial-gradient(120% 120% at 30% 25%, #2E9470 0%, var(--primary) 55%, #0A2219 100%); }
+.land-step.tone-gold .land-step-icon { background: radial-gradient(120% 120% at 30% 25%, #D98A4A 0%, var(--gold) 55%, #3D2410 100%); }
+.land-step.tone-accent3 .land-step-icon { background: radial-gradient(120% 120% at 30% 25%, #5B87C4 0%, var(--accent3) 55%, #0E2135 100%); }
+.land-step-title { position: relative; z-index: 1; font-family: var(--font-jakarta), sans-serif; font-weight: 700; font-size: 16.5px; color: var(--text); margin-top: 6px; }
+.land-step-body { position: relative; z-index: 1; font-size: 13px; line-height: 1.6; color: var(--text-muted); margin: 0; max-width: 280px; }
 
 /* ---------- landing: trust / verification ---------- */
 .land-trust-band {

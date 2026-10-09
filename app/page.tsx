@@ -52,16 +52,19 @@ const FEATURES = [
 const STEPS = [
   {
     icon: LinkIcon,
+    tone: "primary" as const,
     title: "Claim your link",
     body: "Pick your address — agentprofile.ae/yourname. Takes ten seconds, and it's yours.",
   },
   {
     icon: CameraIcon,
+    tone: "gold" as const,
     title: "Build your profile",
     body: "Add your license details, a photo, your bio, and where clients can find you.",
   },
   {
     icon: ShareIcon,
+    tone: "accent3" as const,
     title: "Share it everywhere",
     body: "WhatsApp, Instagram, your business card — one link, always current, nothing to update twice.",
   },
@@ -113,7 +116,9 @@ export default function Home() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [navOpen, setNavOpen] = useState(false);
+  const [stepsInView, setStepsInView] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+  const stepsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -121,6 +126,32 @@ export default function Home() {
     }
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const el = stepsRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStepsInView(true);
+          observer.disconnect();
+        }
+      },
+      // Low threshold deliberately — on mobile the stacked single-column
+      // row is taller than the viewport, so a higher threshold (e.g. 0.3
+      // of the whole row) could never be satisfied while scrolling through
+      // it normally, leaving the steps stuck invisible.
+      { threshold: 0.05 },
+    );
+    observer.observe(el);
+    // Safety net: never leave the content permanently invisible if the
+    // observer doesn't fire for some reason (fast anchor jump, odd layout).
+    const fallback = setTimeout(() => setStepsInView(true), 2000);
+    return () => {
+      observer.disconnect();
+      clearTimeout(fallback);
+    };
   }, []);
 
   function claimProfile(e: React.FormEvent) {
@@ -292,12 +323,12 @@ export default function Home() {
       <section className="land-steps">
         <span className="land-eyebrow land-eyebrow-center">How it works</span>
         <h2>Live in three steps, not three weeks</h2>
-        <div className="land-steps-row">
+        <div className="land-steps-row" ref={stepsRef}>
           {STEPS.map((s, i) => (
-            <div className="land-step" key={s.title}>
-              <div className="land-step-num">{i + 1}</div>
+            <div className={`land-step tone-${s.tone}${stepsInView ? " in-view" : ""}`} key={s.title}>
+              <span className="land-step-watermark">{i + 1}</span>
               <div className="land-step-icon">
-                <s.icon className="w-4 h-4" />
+                <s.icon className="w-5 h-5" />
               </div>
               <div className="land-step-title">{s.title}</div>
               <p className="land-step-body">{s.body}</p>
