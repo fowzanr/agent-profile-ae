@@ -28,79 +28,24 @@ const FEATURES = [
     tone: "primary" as const,
     title: "One link for everywhere",
     body: "Put it on WhatsApp, Instagram, and your business card — one link instead of a scattered handful.",
-    preview: (
-      <div className="land-feature-preview">
-        <div className="preview-chip-row">
-          <span className="preview-chip">WhatsApp</span>
-          <span className="preview-chip">Instagram</span>
-          <span className="preview-chip">Business card</span>
-        </div>
-        <div className="preview-link-pill">
-          <LinkIcon className="w-3 h-3" />
-          agentprofile.ae/you
-        </div>
-      </div>
-    ),
   },
   {
     icon: CheckIcon,
     tone: "gold" as const,
     title: "Built-in credibility",
     body: "Your RERA BRN, DED license, and client testimonials, all in one place clients can verify.",
-    preview: (
-      <div className="land-feature-preview preview-pill-row">
-        <span className="land-trust-pill done">
-          <CheckIcon className="w-3 h-3" />
-          BRN verified
-        </span>
-        <span className="land-trust-pill done">
-          <CheckIcon className="w-3 h-3" />
-          DED licensed
-        </span>
-      </div>
-    ),
   },
   {
     icon: WhatsAppIcon,
     tone: "accent3" as const,
     title: "Contact in one tap",
     body: "WhatsApp, call, email, or book a viewing — clients reach you however they prefer.",
-    preview: (
-      <div className="land-feature-preview preview-cta-row">
-        <div className="cta-tile">
-          <PhoneIcon className="w-[14px] h-[14px]" />
-          Call
-        </div>
-        <div className="cta-tile">
-          <MailIcon className="w-[14px] h-[14px]" />
-          Email
-        </div>
-        <div className="cta-tile">
-          <CalendarIcon className="w-[14px] h-[14px]" />
-          Book
-        </div>
-      </div>
-    ),
   },
   {
     icon: TrendingUpIcon,
     tone: "primary" as const,
     title: "Know what's working",
     body: "See profile views, leads, and conversion rate from your dashboard — no spreadsheets.",
-    preview: (
-      <div className="land-feature-preview preview-stats-row">
-        <div className="stat-chip tone-primary">
-          <TrendingUpIcon className="w-3.5 h-3.5" />
-          <span className="stat-chip-value">248</span>
-          <span className="stat-chip-label">Profile views</span>
-        </div>
-        <div className="stat-chip tone-accent3">
-          <StarIcon className="w-3.5 h-3.5" />
-          <span className="stat-chip-value">12</span>
-          <span className="stat-chip-label">Leads</span>
-        </div>
-      </div>
-    ),
   },
 ];
 
@@ -168,7 +113,6 @@ export default function Home() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [navOpen, setNavOpen] = useState(false);
-  const [activeFeature, setActiveFeature] = useState(0);
   const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -365,29 +309,16 @@ export default function Home() {
       <section className="land-features">
         <span className="land-eyebrow land-eyebrow-center">Why agents choose us</span>
         <h2>Everything a client needs to trust you — in one tap</h2>
-        <div className="land-showcase">
-          <div className="land-showcase-tabs">
-            {FEATURES.map((f, i) => (
-              <button
-                key={f.title}
-                type="button"
-                className={`land-showcase-tab tone-${f.tone}${i === activeFeature ? " active" : ""}`}
-                onClick={() => setActiveFeature(i)}
-                aria-pressed={i === activeFeature}
-              >
-                <div className={`land-feature-icon tone-${f.tone}`}>
-                  <f.icon className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="land-showcase-tab-title">{f.title}</div>
-                  <p className="land-showcase-tab-body">{f.body}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-          <div className={`land-showcase-visual tone-${FEATURES[activeFeature].tone}`} key={activeFeature}>
-            {FEATURES[activeFeature].preview}
-          </div>
+        <div className="land-feature-grid">
+          {FEATURES.map((f) => (
+            <div className="land-feature-card" key={f.title}>
+              <div className={`land-feature-icon tone-${f.tone}`}>
+                <f.icon className="w-4 h-4" />
+              </div>
+              <div className="land-feature-title">{f.title}</div>
+              <p className="land-feature-body">{f.body}</p>
+            </div>
+          ))}
         </div>
       </section>
 
