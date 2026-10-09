@@ -1200,11 +1200,10 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
   max-width: 560px; margin: 0 auto 36px; text-wrap: balance; letter-spacing: -0.01em;
 }
 @media (max-width: 560px) { .land-features h2 { font-size: 22px; } }
-.land-feature-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; text-align: left; }
-@media (max-width: 860px) { .land-feature-grid { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 520px) { .land-feature-grid { grid-template-columns: 1fr; } }
+.land-feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: left; }
+@media (max-width: 640px) { .land-feature-grid { grid-template-columns: 1fr; } }
 .land-feature-card {
-  position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 24px 20px 22px;
+  position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 24px;
   display: flex; flex-direction: column; gap: 10px; overflow: hidden;
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
@@ -1213,16 +1212,28 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
 .land-feature-card.tone-gold::before { background: var(--gold); }
 .land-feature-card.tone-accent3::before { background: var(--accent3); }
 .land-feature-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: transparent; }
-.land-feature-num {
-  position: absolute; top: 16px; right: 18px; font-family: var(--font-jakarta), sans-serif; font-weight: 800;
-  font-size: 22px; color: var(--border);
-}
 .land-feature-icon { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; }
 .land-feature-icon.tone-primary { background: var(--primary-soft); color: var(--primary); }
 .land-feature-icon.tone-gold { background: var(--gold-soft); color: var(--gold); }
 .land-feature-icon.tone-accent3 { background: var(--accent3-soft); color: var(--accent3); }
 .land-feature-title { font-family: var(--font-jakarta), sans-serif; font-weight: 700; font-size: 15.5px; color: var(--text); }
 .land-feature-body { font-size: 13px; line-height: 1.55; color: var(--text-muted); margin: 0; }
+
+.land-feature-preview { margin-top: 2px; padding-top: 16px; border-top: 1px solid var(--border); }
+.preview-chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.preview-chip {
+  font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px;
+}
+.preview-link-pill {
+  display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-jakarta), sans-serif; font-weight: 700;
+  font-size: 12px; color: var(--primary); background: var(--primary-soft); border-radius: 999px; padding: 7px 14px;
+}
+.preview-pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.preview-cta-row { display: flex; gap: 8px; }
+.preview-cta-row .cta-tile { flex: 1; cursor: default; }
+.preview-cta-row .cta-tile:hover { transform: none; }
+.preview-stats-row { display: flex; flex-wrap: wrap; gap: 8px; }
 
 /* ---------- landing: how it works ---------- */
 .land-steps { padding: 20px 24px 64px; max-width: 1120px; margin: 0 auto; width: 100%; text-align: center; }
@@ -1293,11 +1304,16 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
 }
 .land-trust-pill.pending { background: var(--gold-soft); color: var(--gold); }
 .land-trust-pill.done { background: var(--primary-soft); color: var(--primary); }
-.land-trust-card-foot {
-  display: flex; align-items: center; gap: 10px; padding-top: 14px; border-top: 1px solid var(--border);
-  font-size: 12.5px; color: var(--text-muted); font-weight: 600;
+.land-trust-pill.live { background: var(--primary); color: var(--primary-ink); }
+.land-trust-card-row-live {
+  margin: 4px -20px -20px; padding: 14px 20px; background: var(--primary-soft); border-radius: 0 0 17px 17px;
 }
-.land-trust-badge { position: static; flex-shrink: 0; }
+.land-trust-card-icon.live { background: var(--primary); color: var(--primary-ink); }
+.land-trust-pulse {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--primary-ink); flex-shrink: 0;
+  animation: trustPulse 1.8s ease-in-out infinite;
+}
+@keyframes trustPulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 
 /* ---------- landing: FAQ ---------- */
 .land-faq { padding: 64px 24px; max-width: 760px; margin: 0 auto; width: 100%; text-align: center; }
