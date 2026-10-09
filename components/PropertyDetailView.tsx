@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { Agent, Property } from "@prisma/client";
 import { PropertyArt } from "@/components/PropertyArt";
+import { AgentAvatar } from "@/components/AgentAvatar";
 import { formatAED, rentalSuffix, rentalLabel } from "@/lib/format";
 import { furnishingLabel, ownershipLabel, usageLabel, mapsLink } from "@/lib/propertyMeta";
 import { track } from "@/lib/track";
@@ -205,7 +206,7 @@ export function PropertyDetailView({ property, agent }: { property: Property; ag
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={agent.photoUrl} alt={agent.name} className="avatar-sm avatar-photo" />
               ) : (
-                <div className="avatar-sm">{agent.avatarInitials}</div>
+                <AgentAvatar seed={agent.id} initials={agent.avatarInitials} size={52} />
               )}
               <div className="agent-info">
                 <span className="agent-name">{agent.name}</span>

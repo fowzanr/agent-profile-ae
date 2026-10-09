@@ -21,6 +21,7 @@ import {
   ChevronDownIcon,
   BriefcaseIcon,
 } from "@/components/icons";
+import { AgentAvatar } from "@/components/AgentAvatar";
 
 const FEATURES = [
   {
@@ -221,7 +222,7 @@ export default function Home() {
                 <div className="card profile land-mockup-card">
                   <div className="id-row">
                     <div className="avatar-wrap">
-                      <div className="avatar">AF</div>
+                      <AgentAvatar seed="ahmed-al-falasi" initials="AF" size={76} />
                       <div className="verified-badge">
                         <CheckIcon className="w-[13px] h-[13px]" />
                       </div>
