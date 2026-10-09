@@ -11,7 +11,6 @@ import { ChipMultiSelect } from "@/components/ChipMultiSelect";
 import { TagSelect } from "@/components/TagSelect";
 import { ComboInput } from "@/components/ComboInput";
 import { PropertyForm, emptyPropertyForm, propertyToFormState, type PropertyFormState } from "@/components/PropertyForm";
-import { AgentAvatar } from "@/components/AgentAvatar";
 import {
   BriefcaseIcon,
   PhoneIcon,
@@ -796,7 +795,7 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={agent.photoUrl} alt={agent.name} className="dash-agent-avatar avatar-photo" />
           ) : (
-            <AgentAvatar seed={agent.id} initials={agent.avatarInitials} size={38} />
+            <div className="dash-agent-avatar">{agent.avatarInitials}</div>
           )}
           <div>
             <div className="dash-agent-name">{agent.name}</div>

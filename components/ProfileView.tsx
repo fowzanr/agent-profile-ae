@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Agent, AgentLink, Property, Testimonial } from "@prisma/client";
 import { PropertyArt } from "@/components/PropertyArt";
-import { AgentAvatar } from "@/components/AgentAvatar";
 import { formatAED, formatAEDCompact, csvToList, rentalSuffix, rentalLabel, RENTAL_PERIODS } from "@/lib/format";
 import { track } from "@/lib/track";
 import { LISTINGS_ENABLED, LEADS_ENABLED } from "@/lib/constants";
@@ -214,7 +213,7 @@ export function ProfileView({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={agent.photoUrl} alt={agent.name} className="avatar avatar-photo" />
               ) : (
-                <AgentAvatar seed={agent.id} initials={agent.avatarInitials} size={76} />
+                <div className="avatar">{agent.avatarInitials}</div>
               )}
               {agent.isVerified && agent.isPro && (
                 <div className="verified-badge">
