@@ -169,6 +169,7 @@ export default function Home() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [navOpen, setNavOpen] = useState(false);
+  const [activeFeature, setActiveFeature] = useState(0);
   const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -284,7 +285,7 @@ export default function Home() {
                     </div>
                     <div className="id-main">
                       <div className="id-name-row">
-                        <h1>Ahmed Al Falasi</h1>
+                        <div className="mockup-name">Ahmed Al Falasi</div>
                       </div>
                       <p className="role-line">Luxury &amp; Off-Plan Specialist</p>
                       <p className="agency">Vantage Real Estate</p>
@@ -365,17 +366,29 @@ export default function Home() {
       <section className="land-features">
         <span className="land-eyebrow land-eyebrow-center">Why agents choose us</span>
         <h2>Everything a client needs to trust you — in one tap</h2>
-        <div className="land-feature-grid">
-          {FEATURES.map((f) => (
-            <div className={`land-feature-card tone-${f.tone}`} key={f.title}>
-              <div className={`land-feature-icon tone-${f.tone}`}>
-                <f.icon className="w-4 h-4" />
-              </div>
-              <div className="land-feature-title">{f.title}</div>
-              <p className="land-feature-body">{f.body}</p>
-              {f.preview}
-            </div>
-          ))}
+        <div className="land-showcase">
+          <div className="land-showcase-tabs">
+            {FEATURES.map((f, i) => (
+              <button
+                key={f.title}
+                type="button"
+                className={`land-showcase-tab tone-${f.tone}${i === activeFeature ? " active" : ""}`}
+                onClick={() => setActiveFeature(i)}
+                aria-pressed={i === activeFeature}
+              >
+                <div className={`land-feature-icon tone-${f.tone}`}>
+                  <f.icon className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="land-showcase-tab-title">{f.title}</div>
+                  <p className="land-showcase-tab-body">{f.body}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+          <div className={`land-showcase-visual tone-${FEATURES[activeFeature].tone}`} key={activeFeature}>
+            {FEATURES[activeFeature].preview}
+          </div>
         </div>
       </section>
 
