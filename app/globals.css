@@ -1095,13 +1095,13 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
 }
 .land-hero-copy p { font-size: 15.5px; line-height: 1.65; color: var(--text-muted); margin: 0; max-width: 480px; }
 .land-claim {
-  display: flex; align-items: center; gap: 0; width: 100%; max-width: 440px; margin-top: 14px;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 0; width: 100%; max-width: 440px; margin-top: 14px;
   background: var(--surface); border: 1.5px solid var(--border); border-radius: 999px; padding: 6px 6px 6px 18px;
   box-shadow: var(--shadow);
 }
 .land-claim-prefix { font-size: 13.5px; font-weight: 600; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
 .land-claim input {
-  flex: 1; min-width: 0; border: none; background: none; font-size: 14.5px; color: var(--text);
+  flex: 1; min-width: 60px; border: none; background: none; font-size: 14.5px; color: var(--text);
   padding: 10px 4px; font-family: var(--font-manrope), sans-serif;
 }
 .land-claim input:focus { outline: none; }
@@ -1111,6 +1111,12 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
   cursor: pointer; transition: filter 140ms ease, transform 140ms ease;
 }
 .land-claim-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+@media (max-width: 480px) {
+  .land-claim { border-radius: 20px; padding: 12px 14px; }
+  .land-claim-prefix { font-size: 13px; }
+  .land-claim input { min-width: 70px; padding: 8px 4px; }
+  .land-claim-btn { flex: 1 1 100%; margin-top: 8px; padding: 12px; }
+}
 .land-claim-preview { font-size: 12.5px; color: var(--primary); font-weight: 700; margin: -6px 0 0; }
 .land-hero-sub { font-size: 12.5px; color: var(--text-muted); margin: 0; }
 
@@ -1217,6 +1223,100 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
 .land-feature-icon.tone-accent3 { background: var(--accent3-soft); color: var(--accent3); }
 .land-feature-title { font-family: var(--font-jakarta), sans-serif; font-weight: 700; font-size: 15.5px; color: var(--text); }
 .land-feature-body { font-size: 13px; line-height: 1.55; color: var(--text-muted); margin: 0; }
+
+/* ---------- landing: how it works ---------- */
+.land-steps { padding: 20px 24px 64px; max-width: 1120px; margin: 0 auto; width: 100%; text-align: center; }
+.land-steps h2 {
+  font-family: var(--font-jakarta), sans-serif; font-weight: 800; font-size: 28px; text-align: center;
+  max-width: 560px; margin: 0 auto 48px; text-wrap: balance; letter-spacing: -0.01em;
+}
+@media (max-width: 560px) { .land-steps h2 { font-size: 22px; } }
+.land-steps-row { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; text-align: left; }
+.land-steps-row::before {
+  content: ""; position: absolute; top: 23px; left: calc(100% / 6); right: calc(100% / 6); height: 2px;
+  background: var(--border); z-index: 0;
+}
+@media (max-width: 760px) {
+  .land-steps-row { grid-template-columns: 1fr; gap: 28px; }
+  .land-steps-row::before { display: none; }
+}
+.land-step { position: relative; display: flex; flex-direction: column; gap: 12px; }
+.land-step-icon {
+  position: relative; z-index: 1; width: 46px; height: 46px; border-radius: 50%;
+  background: var(--primary); color: var(--primary-ink); display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 6px var(--bg);
+}
+.land-step-num {
+  position: absolute; top: -6px; left: 30px; width: 20px; height: 20px; border-radius: 50%; z-index: 2;
+  background: var(--gold); color: var(--gold-ink); font-family: var(--font-jakarta), sans-serif; font-weight: 800; font-size: 10.5px;
+  display: flex; align-items: center; justify-content: center;
+}
+.land-step-title { font-family: var(--font-jakarta), sans-serif; font-weight: 700; font-size: 15.5px; color: var(--text); margin-top: 2px; }
+.land-step-body { font-size: 13px; line-height: 1.55; color: var(--text-muted); margin: 0; max-width: 280px; }
+
+/* ---------- landing: trust / verification ---------- */
+.land-trust-band {
+  background: color-mix(in srgb, var(--primary) 5%, var(--bg));
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 64px 24px;
+}
+.land-trust { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; max-width: 1120px; margin: 0 auto; width: 100%; }
+@media (max-width: 860px) { .land-trust { grid-template-columns: 1fr; gap: 36px; } }
+.land-trust-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.land-trust-copy h2 {
+  font-family: var(--font-jakarta), sans-serif; font-weight: 800; font-size: 26px; margin: 0;
+  text-wrap: balance; letter-spacing: -0.01em;
+}
+@media (max-width: 560px) { .land-trust-copy h2 { font-size: 21px; } }
+.land-trust-copy > p { font-size: 14.5px; line-height: 1.65; color: var(--text-muted); margin: 0; max-width: 460px; }
+.land-trust-list { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.land-trust-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px; color: var(--text); line-height: 1.5; }
+.land-trust-list li svg { flex-shrink: 0; margin-top: 3px; color: var(--primary); }
+.land-trust-visual { display: flex; justify-content: center; }
+.land-trust-card {
+  width: 100%; max-width: 360px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+  padding: 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 14px;
+}
+.land-trust-card-row { display: flex; align-items: center; gap: 12px; }
+.land-trust-card-row > div:not(.land-trust-card-icon) { flex: 1; min-width: 0; }
+.land-trust-card-icon {
+  width: 36px; height: 36px; border-radius: 10px; background: var(--surface-2); color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.land-trust-card-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+.land-trust-card-value {
+  font-family: var(--font-jakarta), sans-serif; font-weight: 700; font-size: 14px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.land-trust-pill {
+  flex-shrink: 0; font-family: var(--font-jakarta), sans-serif; font-weight: 700; font-size: 10.5px;
+  padding: 5px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px;
+}
+.land-trust-pill.pending { background: var(--gold-soft); color: var(--gold); }
+.land-trust-pill.done { background: var(--primary-soft); color: var(--primary); }
+.land-trust-card-foot {
+  display: flex; align-items: center; gap: 10px; padding-top: 14px; border-top: 1px solid var(--border);
+  font-size: 12.5px; color: var(--text-muted); font-weight: 600;
+}
+.land-trust-badge { position: static; flex-shrink: 0; }
+
+/* ---------- landing: FAQ ---------- */
+.land-faq { padding: 64px 24px; max-width: 760px; margin: 0 auto; width: 100%; text-align: center; }
+.land-faq h2 {
+  font-family: var(--font-jakarta), sans-serif; font-weight: 800; font-size: 28px; max-width: 560px;
+  margin: 0 auto 32px; text-wrap: balance; letter-spacing: -0.01em;
+}
+@media (max-width: 560px) { .land-faq h2 { font-size: 22px; } }
+.land-faq-list { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.land-faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: border-color 140ms ease; }
+.land-faq-item.open { border-color: var(--primary); }
+.land-faq-q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: none; border: none; cursor: pointer; padding: 16px 18px; text-align: left;
+  font-family: var(--font-jakarta), sans-serif; font-weight: 700; font-size: 14px; color: var(--text);
+}
+.land-faq-chevron { width: 16px; height: 16px; flex-shrink: 0; color: var(--text-muted); transition: transform 160ms ease; }
+.land-faq-item.open .land-faq-chevron { transform: rotate(180deg); color: var(--primary); }
+.land-faq-a { margin: 0; padding: 0 18px 18px; font-size: 13.5px; line-height: 1.6; color: var(--text-muted); }
 
 .land-cta {
   position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px;

@@ -16,6 +16,10 @@ import {
   BuildingIcon,
   MenuIcon,
   CloseIcon,
+  CameraIcon,
+  ShareIcon,
+  ChevronDownIcon,
+  BriefcaseIcon,
 } from "@/components/icons";
 
 const FEATURES = [
@@ -44,6 +48,66 @@ const FEATURES = [
     body: "See profile views, leads, and conversion rate from your dashboard — no spreadsheets.",
   },
 ];
+
+const STEPS = [
+  {
+    icon: LinkIcon,
+    title: "Claim your link",
+    body: "Pick your address — agentprofile.ae/yourname. Takes ten seconds, and it's yours.",
+  },
+  {
+    icon: CameraIcon,
+    title: "Build your profile",
+    body: "Add your license details, a photo, your bio, and where clients can find you.",
+  },
+  {
+    icon: ShareIcon,
+    title: "Share it everywhere",
+    body: "WhatsApp, Instagram, your business card — one link, always current, nothing to update twice.",
+  },
+];
+
+const VERIFICATION_POINTS = [
+  "You submit your RERA BRN and DED license when you sign up",
+  "Our team checks it against Dubai Land Department's public broker list",
+  "Only checked, approved profiles ever go live publicly",
+];
+
+const FAQS = [
+  {
+    q: "Is agentprofile.ae really free?",
+    a: "Yes. Creating your profile and sharing your link costs nothing, and there will always be a free tier.",
+  },
+  {
+    q: "Do I need to be RERA licensed to join?",
+    a: "Yes — we collect your BRN and DED license at signup, and our team checks it before your profile goes live. That's what makes the verified badge actually mean something.",
+  },
+  {
+    q: "What happens right after I sign up?",
+    a: "You'll build out your profile — photo, bio, contact details — then submit it for review. Our team checks your license, and your page goes live once it's approved.",
+  },
+  {
+    q: "Can I change my link later?",
+    a: "Yes, anytime from your dashboard, as long as the new one isn't already taken.",
+  },
+  {
+    q: "How is this different from just posting on Instagram?",
+    a: "An Instagram bio link goes stale and gets buried. This is one address you put everywhere once — WhatsApp, business cards, signage — and it stays current because you only ever update it in one place.",
+  },
+];
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`land-faq-item${open ? " open" : ""}`}>
+      <button type="button" className="land-faq-q" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        {q}
+        <ChevronDownIcon className="land-faq-chevron" />
+      </button>
+      {open && <p className="land-faq-a">{a}</p>}
+    </div>
+  );
+}
 
 export default function Home() {
   const router = useRouter();
@@ -225,6 +289,23 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="land-steps">
+        <span className="land-eyebrow land-eyebrow-center">How it works</span>
+        <h2>Live in three steps, not three weeks</h2>
+        <div className="land-steps-row">
+          {STEPS.map((s, i) => (
+            <div className="land-step" key={s.title}>
+              <div className="land-step-num">{i + 1}</div>
+              <div className="land-step-icon">
+                <s.icon className="w-4 h-4" />
+              </div>
+              <div className="land-step-title">{s.title}</div>
+              <p className="land-step-body">{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="land-features">
         <span className="land-eyebrow land-eyebrow-center">Why agents choose us</span>
         <h2>Everything a client needs to trust you — in one tap</h2>
@@ -238,6 +319,70 @@ export default function Home() {
               <div className="land-feature-title">{f.title}</div>
               <p className="land-feature-body">{f.body}</p>
             </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="land-trust-band">
+        <div className="land-trust">
+          <div className="land-trust-copy">
+            <span className="land-eyebrow">Verified, not just claimed</span>
+            <h2>Every agent is checked against the real register</h2>
+            <p>
+              Anyone can write &quot;licensed&quot; in an Instagram bio. Here, it means something — we actually check
+              it before your page goes live.
+            </p>
+            <ul className="land-trust-list">
+              {VERIFICATION_POINTS.map((point) => (
+                <li key={point}>
+                  <CheckIcon className="w-3.5 h-3.5" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="land-trust-visual">
+            <div className="land-trust-card">
+              <div className="land-trust-card-row">
+                <div className="land-trust-card-icon">
+                  <BriefcaseIcon className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="land-trust-card-label">RERA BRN</div>
+                  <div className="land-trust-card-value">41527</div>
+                </div>
+                <span className="land-trust-pill pending">Checking</span>
+              </div>
+              <div className="land-trust-card-row">
+                <div className="land-trust-card-icon">
+                  <BuildingIcon className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="land-trust-card-label">DED license</div>
+                  <div className="land-trust-card-value">Vantage Real Estate</div>
+                </div>
+                <span className="land-trust-pill done">
+                  <CheckIcon className="w-3 h-3" />
+                  Verified
+                </span>
+              </div>
+              <div className="land-trust-card-foot">
+                <div className="verified-badge land-trust-badge">
+                  <CheckIcon className="w-[13px] h-[13px]" />
+                </div>
+                Badge appears once approved
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="land-faq">
+        <span className="land-eyebrow land-eyebrow-center">Questions</span>
+        <h2>Good to know before you start</h2>
+        <div className="land-faq-list">
+          {FAQS.map((f) => (
+            <FaqItem key={f.q} q={f.q} a={f.a} />
           ))}
         </div>
       </section>
