@@ -9,15 +9,21 @@ type QueueAgent = Agent & { properties: { id: string }[] };
 export function PendingReviewList({ agents }: { agents: QueueAgent[] }) {
   const [list, setList] = useState(agents);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function reject(agent: QueueAgent) {
     setBusyId(agent.id);
-    await fetch(`/api/admin/agents/${agent.id}`, {
+    setError(null);
+    const res = await fetch(`/api/admin/agents/${agent.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ submittedForReview: false }),
     });
     setBusyId(null);
+    if (!res.ok) {
+      setError(`Couldn't reject ${agent.name} — try again.`);
+      return;
+    }
     setList((prev) => prev.filter((a) => a.id !== agent.id));
   }
 
@@ -27,6 +33,7 @@ export function PendingReviewList({ agents }: { agents: QueueAgent[] }) {
 
   return (
     <div className="admin-list">
+      {error && <div className="form-error">{error}</div>}
       {list.map((a) => (
         <div className="admin-card" key={a.id}>
           <div className="admin-card-main">

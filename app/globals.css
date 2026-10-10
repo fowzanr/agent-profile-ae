@@ -897,6 +897,13 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
 .admin-section-link { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--primary); }
 .admin-section-link:hover { text-decoration: underline; }
 
+.admin-filter-chip {
+  display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted);
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; width: fit-content;
+}
+.admin-filter-chip strong { color: var(--text); }
+.admin-filter-chip-clear { color: var(--primary); font-weight: 600; margin-left: 4px; }
+.admin-filter-chip-clear:hover { text-decoration: underline; }
 .admin-filters-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .admin-search-form { display: flex; gap: 8px; flex: 1 1 260px; min-width: 220px; }
 .admin-search-input {

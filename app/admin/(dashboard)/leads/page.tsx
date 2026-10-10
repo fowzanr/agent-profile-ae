@@ -16,8 +16,9 @@ const CHANNEL_LABEL: Record<string, string> = {
 
 const RANGE_DAYS: Record<string, number | null> = { "7d": 7, "30d": 30, all: null };
 
-function buildLeadsHref(page: number, agent: string, channel: string, range: string) {
+function buildLeadsHref(page: number, agent: string, channel: string, range: string, agentId?: string) {
   const params = new URLSearchParams();
+  if (agentId) params.set("agentId", agentId);
   if (agent.trim()) params.set("agent", agent.trim());
   if (channel !== "all") params.set("channel", channel);
   if (range !== "all") params.set("range", range);
@@ -29,16 +30,19 @@ function buildLeadsHref(page: number, agent: string, channel: string, range: str
 export default async function LeadsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ agent?: string; channel?: string; range?: string; page?: string }>;
+  searchParams: Promise<{ agent?: string; agentId?: string; channel?: string; range?: string; page?: string }>;
 }) {
-  const { agent = "", channel = "all", range = "all", page: rawPage = "1" } = await searchParams;
+  const { agent = "", agentId, channel = "all", range = "all", page: rawPage = "1" } = await searchParams;
   const page = Math.max(1, parseInt(rawPage, 10) || 1);
   const rangeDays = RANGE_DAYS[range] ?? null;
   const since = rangeDays ? daysAgo(rangeDays) : null;
 
+  const filteredAgent = agentId ? await prisma.agent.findUnique({ where: { id: agentId }, select: { id: true, name: true } }) : null;
+
   const where: Prisma.LeadWhereInput = {
     ...(channel !== "all" ? { channel } : {}),
     ...(since ? { createdAt: { gte: since } } : {}),
+    ...(filteredAgent ? { agentId: filteredAgent.id } : {}),
     ...(agent.trim()
       ? {
           agent: {
@@ -100,6 +104,15 @@ export default async function LeadsPage({
         </div>
       )}
 
+      {filteredAgent && (
+        <div className="admin-filter-chip">
+          Filtering by <strong>{filteredAgent.name}</strong>
+          <Link href="/admin/leads" className="admin-filter-chip-clear">
+            Clear
+          </Link>
+        </div>
+      )}
+
       <LeadsFilterBar agent={agent} channel={channel} range={range} />
 
       {leads.length === 0 ? (
@@ -145,7 +158,7 @@ export default async function LeadsPage({
           {totalPages > 1 && (
             <div className="admin-pagination">
               <Link
-                href={buildLeadsHref(page - 1, agent, channel, range)}
+                href={buildLeadsHref(page - 1, agent, channel, range, filteredAgent?.id)}
                 className={`btn-ghost-sm${page <= 1 ? " admin-disabled-link" : ""}`}
                 aria-disabled={page <= 1}
               >
@@ -155,7 +168,7 @@ export default async function LeadsPage({
                 Page {page} of {totalPages} · {total.toLocaleString("en-US")} result{total === 1 ? "" : "s"}
               </span>
               <Link
-                href={buildLeadsHref(page + 1, agent, channel, range)}
+                href={buildLeadsHref(page + 1, agent, channel, range, filteredAgent?.id)}
                 className={`btn-ghost-sm${page >= totalPages ? " admin-disabled-link" : ""}`}
                 aria-disabled={page >= totalPages}
               >
