@@ -125,6 +125,55 @@ const FAQS = [
   },
 ];
 
+function useReveal<T extends HTMLElement>(direction?: "left" | "right") {
+  const ref = useRef<T>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -80px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const base = direction === "left" ? "reveal-left" : direction === "right" ? "reveal-right" : "reveal";
+  return { ref, className: `${base}${visible ? " reveal-visible" : ""}` };
+}
+
+function StepCard({ step, index }: { step: (typeof STEPS)[number]; index: number }) {
+  const { ref, className } = useReveal<HTMLDivElement>();
+  return (
+    <div className={`land-step ${className}`} ref={ref} style={{ transitionDelay: `${index * 90}ms` }}>
+      <div className="land-step-mockup">{step.mockup}</div>
+      <span className="land-step-label">{step.label}</span>
+      <div className="land-step-title">{step.title}</div>
+      <p className="land-step-body">{step.body}</p>
+    </div>
+  );
+}
+
+function FeatureCard({ feature, index }: { feature: (typeof FEATURES)[number]; index: number }) {
+  const { ref, className } = useReveal<HTMLDivElement>();
+  return (
+    <div className={`land-feature-card ${className}`} ref={ref} style={{ transitionDelay: `${index * 70}ms` }}>
+      <div className={`land-feature-icon tone-${feature.tone}`}>
+        <feature.icon className="w-4 h-4" />
+      </div>
+      <div className="land-feature-title">{feature.title}</div>
+      <p className="land-feature-body">{feature.body}</p>
+    </div>
+  );
+}
+
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
@@ -143,6 +192,12 @@ export default function Home() {
   const [name, setName] = useState("");
   const [navOpen, setNavOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
+  const { ref: stepsHeadingRef, className: stepsHeadingClass } = useReveal<HTMLDivElement>();
+  const { ref: featuresHeadingRef, className: featuresHeadingClass } = useReveal<HTMLDivElement>();
+  const { ref: trustCopyRef, className: trustCopyClass } = useReveal<HTMLDivElement>("left");
+  const { ref: trustVisualRef, className: trustVisualClass } = useReveal<HTMLDivElement>("right");
+  const { ref: faqRef, className: faqClass } = useReveal<HTMLDivElement>();
+  const { ref: ctaRef, className: ctaClass } = useReveal<HTMLDivElement>();
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -319,39 +374,33 @@ export default function Home() {
       </section>
 
       <section className="land-steps">
-        <span className="land-eyebrow land-eyebrow-center">How it works</span>
-        <h2>Live in three steps, not three weeks</h2>
+        <div ref={stepsHeadingRef} className={stepsHeadingClass}>
+          <span className="land-eyebrow land-eyebrow-center">How it works</span>
+          <h2>Live in three steps, not three weeks</h2>
+        </div>
         <div className="land-steps-row">
-          {STEPS.map((s) => (
-            <div className="land-step" key={s.title}>
-              <div className="land-step-mockup">{s.mockup}</div>
-              <span className="land-step-label">{s.label}</span>
-              <div className="land-step-title">{s.title}</div>
-              <p className="land-step-body">{s.body}</p>
-            </div>
+          {STEPS.map((s, i) => (
+            <StepCard step={s} index={i} key={s.title} />
           ))}
         </div>
       </section>
 
       <section className="land-features">
-        <span className="land-eyebrow land-eyebrow-center">Why agents choose us</span>
-        <h2>Everything a client needs to trust you — in one tap</h2>
+        <div ref={featuresHeadingRef} className={featuresHeadingClass}>
+          <span className="land-eyebrow land-eyebrow-center">Why agents choose us</span>
+          <h2>Everything a client needs to trust you — in one tap</h2>
+        </div>
         <div className="land-feature-grid">
-          {FEATURES.map((f) => (
-            <div className="land-feature-card" key={f.title}>
-              <div className={`land-feature-icon tone-${f.tone}`}>
-                <f.icon className="w-4 h-4" />
-              </div>
-              <div className="land-feature-title">{f.title}</div>
-              <p className="land-feature-body">{f.body}</p>
-            </div>
+          {FEATURES.map((f, i) => (
+            <FeatureCard feature={f} index={i} key={f.title} />
           ))}
         </div>
       </section>
 
       <section className="land-trust-band">
         <div className="land-trust">
-          <div className="land-trust-copy">
+          <div className="land-trust-copy" ref={trustCopyRef}>
+            <div className={trustCopyClass}>
             <span className="land-eyebrow">Verified, not just claimed</span>
             <h2>Every agent is checked against the real register</h2>
             <p>
@@ -366,9 +415,10 @@ export default function Home() {
                 </li>
               ))}
             </ul>
+            </div>
           </div>
-          <div className="land-trust-visual">
-            <div className="land-trust-card">
+          <div className="land-trust-visual" ref={trustVisualRef}>
+            <div className={`land-trust-card ${trustVisualClass}`}>
               <div className="land-trust-card-row">
                 <div className="land-trust-card-icon">
                   <BriefcaseIcon className="w-4 h-4" />
@@ -411,22 +461,26 @@ export default function Home() {
       </section>
 
       <section className="land-faq">
-        <span className="land-eyebrow land-eyebrow-center">Questions</span>
-        <h2>Good to know before you start</h2>
-        <div className="land-faq-list">
-          {FAQS.map((f) => (
-            <FaqItem key={f.q} q={f.q} a={f.a} />
-          ))}
+        <div ref={faqRef} className={faqClass}>
+          <span className="land-eyebrow land-eyebrow-center">Questions</span>
+          <h2>Good to know before you start</h2>
+          <div className="land-faq-list">
+            {FAQS.map((f) => (
+              <FaqItem key={f.q} q={f.q} a={f.a} />
+            ))}
+          </div>
         </div>
       </section>
 
       <section className="land-cta">
-        <div className="land-cta-glow" />
-        <h2>Ready to build yours?</h2>
-        <p>Set up your profile in under two minutes — no credit card, no catch.</p>
-        <Link className="land-cta-btn" href="/signup">
-          Create your profile — it&apos;s free
-        </Link>
+        <div ref={ctaRef} className={ctaClass}>
+          <div className="land-cta-glow" />
+          <h2>Ready to build yours?</h2>
+          <p>Set up your profile in under two minutes — no credit card, no catch.</p>
+          <Link className="land-cta-btn" href="/signup">
+            Create your profile — it&apos;s free
+          </Link>
+        </div>
       </section>
 
       <footer className="land-footer">

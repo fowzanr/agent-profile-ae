@@ -77,6 +77,16 @@ p { margin: 0; }
 button { font: inherit; }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
 
+.reveal {
+  opacity: 0; transform: translateY(28px);
+  transition: opacity .7s cubic-bezier(.16,.84,.44,1), transform .7s cubic-bezier(.16,.84,.44,1);
+}
+.reveal.reveal-visible { opacity: 1; transform: translateY(0); }
+.reveal-left { opacity: 0; transform: translateX(-32px); transition: opacity .7s cubic-bezier(.16,.84,.44,1), transform .7s cubic-bezier(.16,.84,.44,1); }
+.reveal-left.reveal-visible { opacity: 1; transform: translateX(0); }
+.reveal-right { opacity: 0; transform: translateX(32px); transition: opacity .7s cubic-bezier(.16,.84,.44,1), transform .7s cubic-bezier(.16,.84,.44,1); }
+.reveal-right.reveal-visible { opacity: 1; transform: translateX(0); }
+
 .page-shell { display: flex; justify-content: center; padding: 28px 14px 70px; min-height: 100vh; }
 .preview-notice-banner {
   position: sticky; top: 0; z-index: 50; width: 100%; text-align: center;
