@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Agent, Lead, Property } from "@prisma/client";
 import { formatAED } from "@/lib/format";
+import { SOCIAL_PLATFORMS, hasAnySocial, socialUrlsOf, type SocialUrls } from "@/lib/socials";
 
 type AgentWithRelations = Agent & { properties: Property[]; leads: Lead[] };
 
@@ -20,9 +21,7 @@ type FormState = {
   contactEmail: string;
   phone: string;
   whatsapp: string;
-  instagramUrl: string;
-  linkedinUrl: string;
-  tiktokUrl: string;
+  coverUrl: string;
   bio: string;
   specialities: string;
   areas: string;
@@ -37,7 +36,7 @@ type FormState = {
   manualForSaleCount: number;
   manualForRentCount: number;
   transactedVolume: number | "";
-};
+} & SocialUrls;
 
 function toFormState(agent: AgentWithRelations): FormState {
   return {
@@ -52,9 +51,8 @@ function toFormState(agent: AgentWithRelations): FormState {
     contactEmail: agent.contactEmail,
     phone: agent.phone,
     whatsapp: agent.whatsapp,
-    instagramUrl: agent.instagramUrl ?? "",
-    linkedinUrl: agent.linkedinUrl ?? "",
-    tiktokUrl: agent.tiktokUrl ?? "",
+    ...socialUrlsOf(agent),
+    coverUrl: agent.coverUrl ?? "",
     bio: agent.bio,
     specialities: agent.specialities,
     areas: agent.areas,
@@ -237,41 +235,41 @@ export function AgentDetailView({
         </div>
 
         <div className="admin-panel">
+          <div className="admin-panel-title">Cover image</div>
+          {form.coverUrl ? (
+            <div className="admin-cover">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={form.coverUrl} alt="Cover" />
+              <div className="admin-cover-actions">
+                <a className="admin-open-link" href={form.coverUrl} target="_blank" rel="noreferrer">
+                  Open
+                </a>
+                <button type="button" className="admin-open-link" onClick={() => set("coverUrl", "")}>
+                  Remove
+                </button>
+              </div>
+            </div>
+          ) : (
+            <span className="admin-table-muted">No cover image</span>
+          )}
+        </div>
+
+        <div className="admin-panel">
           <div className="admin-panel-title">Social links</div>
           <div className="admin-field-grid">
-            <div className="field">
-              <label>Instagram URL</label>
-              <div className="admin-input-with-link">
-                <input value={form.instagramUrl} onChange={(e) => set("instagramUrl", e.target.value)} />
-                {form.instagramUrl && (
-                  <a className="admin-open-link" href={form.instagramUrl} target="_blank" rel="noreferrer">
-                    Open
-                  </a>
-                )}
+            {SOCIAL_PLATFORMS.map(({ field, name }) => (
+              <div className="field" key={field}>
+                <label>{name} URL</label>
+                <div className="admin-input-with-link">
+                  <input value={form[field]} onChange={(e) => set(field, e.target.value)} />
+                  {form[field] && (
+                    <a className="admin-open-link" href={form[field]} target="_blank" rel="noreferrer">
+                      Open
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="field">
-              <label>LinkedIn URL</label>
-              <div className="admin-input-with-link">
-                <input value={form.linkedinUrl} onChange={(e) => set("linkedinUrl", e.target.value)} />
-                {form.linkedinUrl && (
-                  <a className="admin-open-link" href={form.linkedinUrl} target="_blank" rel="noreferrer">
-                    Open
-                  </a>
-                )}
-              </div>
-            </div>
-            <div className="field">
-              <label>TikTok URL</label>
-              <div className="admin-input-with-link">
-                <input value={form.tiktokUrl} onChange={(e) => set("tiktokUrl", e.target.value)} />
-                {form.tiktokUrl && (
-                  <a className="admin-open-link" href={form.tiktokUrl} target="_blank" rel="noreferrer">
-                    Open
-                  </a>
-                )}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -306,24 +304,14 @@ export function AgentDetailView({
             <div>
               <div className="admin-verify-label">Social media profiles</div>
               <div className="admin-verify-social-links">
-                {form.instagramUrl && (
-                  <a href={form.instagramUrl} target="_blank" rel="noreferrer" className="admin-open-link">
-                    Instagram
-                  </a>
+                {SOCIAL_PLATFORMS.map(({ field, name }) =>
+                  form[field] ? (
+                    <a key={field} href={form[field]} target="_blank" rel="noreferrer" className="admin-open-link">
+                      {name}
+                    </a>
+                  ) : null,
                 )}
-                {form.linkedinUrl && (
-                  <a href={form.linkedinUrl} target="_blank" rel="noreferrer" className="admin-open-link">
-                    LinkedIn
-                  </a>
-                )}
-                {form.tiktokUrl && (
-                  <a href={form.tiktokUrl} target="_blank" rel="noreferrer" className="admin-open-link">
-                    TikTok
-                  </a>
-                )}
-                {!form.instagramUrl && !form.linkedinUrl && !form.tiktokUrl && (
-                  <span className="admin-table-muted">No social links provided</span>
-                )}
+                {!hasAnySocial(form) && <span className="admin-table-muted">No social links provided</span>}
               </div>
               {form.socialVerified && agent.socialVerifiedAt && (
                 <span className="admin-verify-timestamp">Verified {formatVerifiedAt(agent.socialVerifiedAt)}</span>

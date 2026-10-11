@@ -5,11 +5,13 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import type { Agent, AgentLink, Property, Testimonial } from "@prisma/client";
 import { formatAED, rentalLabel, rentalSuffix } from "@/lib/format";
-import { EMIRATES, LANGUAGES, LISTINGS_ENABLED } from "@/lib/constants";
+import { BIO_MAX_LENGTH, EMIRATES, LANGUAGES, LISTINGS_ENABLED } from "@/lib/constants";
 import { isValidSlug } from "@/lib/validation";
 import { ChipMultiSelect } from "@/components/ChipMultiSelect";
 import { TagSelect } from "@/components/TagSelect";
 import { ComboInput } from "@/components/ComboInput";
+import { SOCIAL_PLATFORMS, hasAnySocial, socialUrlsOf } from "@/lib/socials";
+import { ImageCropper, downscaleImage, uploadImageBlob } from "@/components/ImageCropper";
 import { PropertyForm, emptyPropertyForm, propertyToFormState, type PropertyFormState } from "@/components/PropertyForm";
 import {
   BriefcaseIcon,
@@ -312,6 +314,9 @@ function SectionHeader({
   );
 }
 
+type ProfileImageField = "photoUrl" | "coverUrl";
+type ProfileImageSourceField = "photoSourceUrl" | "coverSourceUrl";
+
 export function DashboardView({ agent }: { agent: AgentWithProperties }) {
   const [form, setForm] = useState({
     name: agent.name,
@@ -320,13 +325,15 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
     brn: agent.brn,
     dedLicensed: agent.dedLicensed,
     bio: agent.bio,
+    photoUrl: agent.photoUrl ?? "",
+    photoSourceUrl: agent.photoSourceUrl ?? "",
+    coverUrl: agent.coverUrl ?? "",
+    coverSourceUrl: agent.coverSourceUrl ?? "",
     yearsExperience: agent.yearsExperience,
     whatsapp: agent.whatsapp,
     phone: agent.phone,
     contactEmail: agent.contactEmail,
-    instagramUrl: agent.instagramUrl ?? "",
-    linkedinUrl: agent.linkedinUrl ?? "",
-    tiktokUrl: agent.tiktokUrl ?? "",
+    ...socialUrlsOf(agent),
     specialities: agent.specialities,
     areas: agent.areas,
     languages: agent.languages,
@@ -369,6 +376,8 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
   const [editError, setEditError] = useState<string | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [uploadingSlot, setUploadingSlot] = useState<1 | 2 | 3 | null>(null);
+  const [uploadingImage, setUploadingImage] = useState<ProfileImageField | null>(null);
+  const [cropTarget, setCropTarget] = useState<{ field: ProfileImageField; src: string; file?: File } | null>(null);
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
   const refreshPreview = () => setPreviewRefreshKey((k) => k + 1);
 
@@ -486,6 +495,69 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
     refreshPreview();
   }
 
+  async function saveProfileImages(patch: Partial<Pick<typeof form, ProfileImageField | ProfileImageSourceField>>) {
+    const res = await fetch("/api/agent", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? "Couldn't save image");
+    }
+    setForm((f) => ({ ...f, ...patch }));
+    refreshPreview();
+  }
+
+  function pickProfileImage(field: ProfileImageField, file: File | undefined) {
+    if (!file) return;
+    setProfileError(null);
+    setCropTarget({ field, src: URL.createObjectURL(file), file });
+  }
+
+  function adjustProfileImage(field: ProfileImageField) {
+    const src = field === "photoUrl" ? form.photoSourceUrl || form.photoUrl : form.coverSourceUrl || form.coverUrl;
+    if (src) setCropTarget({ field, src });
+  }
+
+  function closeCropper() {
+    if (cropTarget?.file) URL.revokeObjectURL(cropTarget.src);
+    setCropTarget(null);
+  }
+
+  async function applyCrop(cropped: Blob) {
+    const target = cropTarget;
+    if (!target) return;
+    const sourceField: ProfileImageSourceField = target.field === "photoUrl" ? "photoSourceUrl" : "coverSourceUrl";
+    setUploadingImage(target.field);
+    setProfileError(null);
+    closeCropper();
+    try {
+      const [croppedUrl, sourceUrl] = await Promise.all([
+        uploadImageBlob(cropped),
+        target.file ? downscaleImage(target.file).then(uploadImageBlob) : Promise.resolve(null),
+      ]);
+      await saveProfileImages(sourceUrl ? { [target.field]: croppedUrl, [sourceField]: sourceUrl } : { [target.field]: croppedUrl });
+    } catch (err) {
+      setProfileError(err instanceof Error ? err.message : "Couldn't upload image");
+    } finally {
+      setUploadingImage(null);
+    }
+  }
+
+  async function removeProfileImage(field: ProfileImageField) {
+    const sourceField: ProfileImageSourceField = field === "photoUrl" ? "photoSourceUrl" : "coverSourceUrl";
+    setUploadingImage(field);
+    setProfileError(null);
+    try {
+      await saveProfileImages({ [field]: "", [sourceField]: "" });
+    } catch (err) {
+      setProfileError(err instanceof Error ? err.message : "Couldn't remove image");
+    } finally {
+      setUploadingImage(null);
+    }
+  }
+
   async function handleImageSelect(slot: 1 | 2 | 3, file: File | undefined) {
     if (!file) return;
     setUploadingSlot(slot);
@@ -531,6 +603,11 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
     e.preventDefault();
     setProfileError(null);
     setSaveMsg(null);
+
+    if (form.bio.length > BIO_MAX_LENGTH) {
+      setProfileError(`Your bio is ${form.bio.length} characters. Shorten it to ${BIO_MAX_LENGTH} or fewer to save.`);
+      return;
+    }
 
     const hasContact = form.whatsapp.trim() || form.phone.trim() || form.contactEmail.trim();
     if (!hasContact) {
@@ -791,9 +868,9 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
         </div>
 
         <div className="dash-agent-card">
-          {agent.photoUrl ? (
+          {form.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={agent.photoUrl} alt={agent.name} className="dash-agent-avatar avatar-photo" />
+            <img src={form.photoUrl} alt={agent.name} className="dash-agent-avatar avatar-photo" />
           ) : (
             <div className="dash-agent-avatar">{agent.avatarInitials}</div>
           )}
@@ -920,7 +997,7 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
                   },
                   {
                     label: "Social or extra link added",
-                    done: Boolean(form.instagramUrl.trim() || form.linkedinUrl.trim() || form.tiktokUrl.trim() || links.length > 0),
+                    done: hasAnySocial(form) || links.length > 0,
                     tab: "social" as ProfileTab,
                   },
                   {
@@ -1047,6 +1124,96 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
                     title="Identity"
                     sub="Your name, agency, and license."
                   />
+                  <div className="field profile-media-field">
+                    <label>Profile photo</label>
+                    <div className="photo-upload">
+                      {form.photoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={form.photoUrl} alt="Profile photo" className="photo-upload-img" />
+                      ) : (
+                        <div className="photo-upload-img photo-upload-empty">{agent.avatarInitials}</div>
+                      )}
+                      <div className="photo-upload-side">
+                        <div className="cover-upload-actions" style={{ marginTop: 0 }}>
+                          <label className="btn-ghost-sm">
+                            {uploadingImage === "photoUrl" ? "Saving…" : form.photoUrl ? "Change" : "Upload photo"}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              style={{ display: "none" }}
+                              disabled={uploadingImage !== null}
+                              onChange={(e) => {
+                                pickProfileImage("photoUrl", e.target.files?.[0]);
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                          {form.photoUrl && (
+                            <>
+                              <button type="button" className="btn-ghost-sm" onClick={() => adjustProfileImage("photoUrl")} disabled={uploadingImage !== null}>
+                                Adjust
+                              </button>
+                              <button type="button" className="btn-ghost-sm" onClick={() => removeProfileImage("photoUrl")} disabled={uploadingImage !== null}>
+                                Remove
+                              </button>
+                            </>
+                          )}
+                        </div>
+                        <span className="cover-upload-hint">A clear headshot. JPG, PNG or WEBP — you can crop it after choosing.</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="field profile-media-field">
+                    <label>Cover image</label>
+                    <div className="cover-upload">
+                      {form.coverUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={form.coverUrl} alt="Cover" className="cover-upload-img" />
+                      ) : (
+                        <div className="cover-upload-empty">
+                          A wide banner across the top of your profile — a skyline, your office, or your best listing.
+                        </div>
+                      )}
+                    </div>
+                    <div className="cover-upload-actions">
+                      <label className="btn-ghost-sm">
+                        {uploadingImage === "coverUrl" ? "Saving…" : form.coverUrl ? "Change" : "Upload cover"}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          style={{ display: "none" }}
+                          disabled={uploadingImage !== null}
+                          onChange={(e) => {
+                            pickProfileImage("coverUrl", e.target.files?.[0]);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                      {form.coverUrl && (
+                        <>
+                          <button type="button" className="btn-ghost-sm" onClick={() => adjustProfileImage("coverUrl")} disabled={uploadingImage !== null}>
+                            Adjust
+                          </button>
+                          <button type="button" className="btn-ghost-sm" onClick={() => removeProfileImage("coverUrl")} disabled={uploadingImage !== null}>
+                            Remove
+                          </button>
+                        </>
+                      )}
+                      <span className="cover-upload-hint">A wide photo works best — you can crop it after choosing.</span>
+                    </div>
+                  </div>
+                  {cropTarget && (
+                    <ImageCropper
+                      key={cropTarget.src}
+                      src={cropTarget.src}
+                      aspect={cropTarget.field === "photoUrl" ? 1 : 3}
+                      round={cropTarget.field === "photoUrl"}
+                      outputWidth={cropTarget.field === "photoUrl" ? 600 : 1500}
+                      title={cropTarget.field === "photoUrl" ? "Crop profile photo" : "Crop cover image"}
+                      onCancel={closeCropper}
+                      onConfirm={applyCrop}
+                    />
+                  )}
                   <div className="field-grid">
                     <div className="field">
                       <label>Full name</label>
@@ -1139,30 +1306,12 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
                     sub="Optional — shown as icons on your page."
                   />
                   <div className="field-grid">
-                    <div className="field">
-                      <label>Instagram URL</label>
-                      <input
-                        value={form.instagramUrl}
-                        onChange={(e) => update("instagramUrl", e.target.value)}
-                        placeholder="https://instagram.com/you"
-                      />
-                    </div>
-                    <div className="field">
-                      <label>LinkedIn URL</label>
-                      <input
-                        value={form.linkedinUrl}
-                        onChange={(e) => update("linkedinUrl", e.target.value)}
-                        placeholder="https://linkedin.com/in/you"
-                      />
-                    </div>
-                    <div className="field" style={{ gridColumn: "1 / -1" }}>
-                      <label>TikTok URL</label>
-                      <input
-                        value={form.tiktokUrl}
-                        onChange={(e) => update("tiktokUrl", e.target.value)}
-                        placeholder="https://tiktok.com/@you"
-                      />
-                    </div>
+                    {SOCIAL_PLATFORMS.map(({ field, name, placeholder }) => (
+                      <div className="field" key={field}>
+                        <label>{name} URL</label>
+                        <input value={form[field]} onChange={(e) => update(field, e.target.value)} placeholder={placeholder} />
+                      </div>
+                    ))}
                   </div>
 
                   <div className="sub-block">
@@ -1170,7 +1319,7 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
                       <LinkIcon className="w-3.5 h-3.5" />
                       <div>
                         <div className="sub-block-title">Anything else</div>
-                        <div className="sub-block-sub">Website, Facebook — any link at all.</div>
+                        <div className="sub-block-sub">Your website, YouTube, a listings page — any link at all.</div>
                       </div>
                     </div>
 
@@ -1198,7 +1347,7 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
                       <input
                         value={newLinkLabel}
                         onChange={(e) => setNewLinkLabel(e.target.value)}
-                        placeholder="Label, e.g. Facebook"
+                        placeholder="Label, e.g. Website"
                       />
                       <input
                         value={newLinkUrl}
@@ -1296,10 +1445,14 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
                       </button>
                     </div>
                     <textarea
-                      rows={4}
+                      rows={3}
                       value={form.bio}
                       onChange={(e) => update("bio", e.target.value)}
+                      placeholder="Luxury Specialist at Vantage Real Estate&#10;Off-plan & villas · Dubai Marina, JVC"
                     />
+                    <span className={`bio-count${form.bio.length > BIO_MAX_LENGTH ? " over" : ""}`}>
+                      {form.bio.length}/{BIO_MAX_LENGTH}
+                    </span>
                   </div>
                 </div>
                 )}

@@ -1,13 +1,22 @@
 import { csvToList } from "@/lib/format";
+import { BIO_MAX_LENGTH } from "@/lib/constants";
 
-function humanJoin(items: string[]): string {
-  const clean = items.map((i) => i.trim()).filter(Boolean);
-  if (clean.length === 0) return "";
-  if (clean.length === 1) return clean[0];
-  if (clean.length === 2) return `${clean[0]} and ${clean[1]}`;
-  return `${clean.slice(0, -1).join(", ")}, and ${clean[clean.length - 1]}`;
+function shortJoin(items: string[], sep: string): string {
+  return items.map((i) => i.trim()).filter(Boolean).join(sep);
 }
 
+/** "A", "A & B", "A, B & C" */
+function andJoin(items: string[]): string {
+  const clean = items.map((i) => i.trim()).filter(Boolean);
+  if (clean.length <= 1) return clean[0] ?? "";
+  return `${clean.slice(0, -1).join(", ")} & ${clean[clean.length - 1]}`;
+}
+
+/**
+ * Builds a short, Instagram-style bio (at most BIO_MAX_LENGTH characters) as up
+ * to three lines: who you are, what and where you sell, and experience/languages.
+ * When everything doesn't fit, the least important details are dropped first.
+ */
 export function generateBio(input: {
   name: string;
   role: string;
@@ -17,28 +26,48 @@ export function generateBio(input: {
   areas: string;
   languages: string;
 }): string {
-  const firstName = input.name.trim().split(/\s+/)[0] || "This agent";
-  const role = input.role.trim() || "real estate agent";
+  const role = input.role.trim() || "Real estate agent";
   const agency = input.agency.trim();
-  const specialities = humanJoin(csvToList(input.specialities)) || "residential sales and rentals";
-  const areas = humanJoin(csvToList(input.areas)) || "the UAE";
-  const languageList = csvToList(input.languages);
-  const years = input.yearsExperience > 0 ? input.yearsExperience : null;
+  let specialities = csvToList(input.specialities);
+  let areas = csvToList(input.areas);
+  const languages = csvToList(input.languages);
+  const years = input.yearsExperience > 0 ? input.yearsExperience : 0;
 
-  const atAgency = agency ? ` at ${agency}` : "";
-  const experiencePhrase = years
-    ? years === 1
-      ? "with a year of hands-on experience"
-      : `with ${years} years of hands-on experience`
-    : "newly licensed and ready to prove it";
-  const languageSentence =
-    languageList.length > 0 ? ` Fluent in ${humanJoin(languageList)}, so nothing gets lost in translation.` : "";
+  const experience = years === 0 ? "Newly licensed" : years === 1 ? "1 year experience" : `${years} years experience`;
 
-  const templates = [
-    `${firstName} is a ${role}${atAgency}, ${experiencePhrase} in ${specialities} across ${areas}. Clients know ${firstName} for being responsive, detail-oriented, and genuinely invested in getting the deal right.${languageSentence}`,
-    `${firstName} helps buyers, sellers, and tenants navigate ${areas} with confidence, specialising in ${specialities}. ${agency ? `At ${agency}, ${firstName}` : firstName} is known for clear communication and follow-through from first call to keys in hand.${languageSentence}`,
-    `As a ${role}${atAgency}, ${firstName} has built a track record in ${specialities} throughout ${areas}, ${experiencePhrase}. The focus is simple: make the process smooth and keep clients informed at every step.${languageSentence}`,
-  ];
+  let withAgency = Boolean(agency);
+  let withLanguages = languages.length > 0;
 
-  return templates[Math.floor(Math.random() * templates.length)].replace(/\s+/g, " ").trim();
+  const build = () => {
+    const who = withAgency ? `${role} at ${agency}` : role;
+    const what = andJoin(specialities) || "Residential sales & rentals";
+    const where = shortJoin(areas, ", ") || "across the UAE";
+    const extra = withLanguages ? `${experience} · ${shortJoin(languages, ", ")}` : experience;
+    return [who, `${what} · ${where}`, extra].join("\n");
+  };
+
+  // Drop detail in order of importance until it fits.
+  let bio = build();
+  if (bio.length > BIO_MAX_LENGTH && withLanguages) {
+    withLanguages = false;
+    bio = build();
+  }
+  while (bio.length > BIO_MAX_LENGTH && (specialities.length > 1 || areas.length > 1)) {
+    if (areas.length >= specialities.length && areas.length > 1) areas = areas.slice(0, -1);
+    else specialities = specialities.slice(0, -1);
+    bio = build();
+  }
+  if (bio.length > BIO_MAX_LENGTH && withAgency) {
+    withAgency = false;
+    bio = build();
+  }
+  return truncateBio(bio);
+}
+
+/** Cuts text to BIO_MAX_LENGTH at a word boundary, adding an ellipsis if shortened. */
+export function truncateBio(text: string): string {
+  if (text.length <= BIO_MAX_LENGTH) return text;
+  const cut = text.slice(0, BIO_MAX_LENGTH - 1);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > BIO_MAX_LENGTH * 0.6 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
 }

@@ -4,6 +4,9 @@
 export const LISTINGS_ENABLED = false;
 export const LEADS_ENABLED = false;
 
+// Same as Instagram: bios are short and always shown in full.
+export const BIO_MAX_LENGTH = 150;
+
 export const EMIRATES = [
   "Dubai",
   "Abu Dhabi",
