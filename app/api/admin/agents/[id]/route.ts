@@ -30,6 +30,11 @@ const schema = z.object({
   instagramUrl: z.string().optional(),
   linkedinUrl: z.string().optional(),
   tiktokUrl: z.string().optional(),
+  facebookUrl: z.string().optional(),
+  youtubeUrl: z.string().optional(),
+  pinterestUrl: z.string().optional(),
+  spotifyUrl: z.string().optional(),
+  coverUrl: z.string().optional(),
 
   // About
   bio: z.string().optional(),
@@ -67,6 +72,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const { brnVerified, socialVerified, ...rest } = parsed.data;
   const data: Record<string, unknown> = { ...rest };
+  if (rest.coverUrl !== undefined) data.coverUrl = rest.coverUrl || null;
+  if (rest.coverUrl === "") data.coverSourceUrl = null;
 
   if (brnVerified !== undefined) {
     data.brnVerifiedAt = brnVerified ? (current.brnVerifiedAt ?? new Date()) : null;

@@ -3,13 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
-import { InstagramIcon, LinkedInIcon, TikTokIcon, CheckIcon } from "@/components/icons";
-
-const PLATFORMS = [
-  { key: "instagram", name: "Instagram", icon: InstagramIcon },
-  { key: "linkedin", name: "LinkedIn", icon: LinkedInIcon },
-  { key: "tiktok", name: "TikTok", icon: TikTokIcon },
-] as const;
+import { CheckIcon } from "@/components/icons";
+import { SOCIAL_ICONS } from "@/components/socialIcons";
+import { SOCIAL_PLATFORMS } from "@/lib/socials";
 
 export function OnboardingPlatformsView({ initialSelected }: { initialSelected: string[] }) {
   const router = useRouter();
@@ -54,8 +50,9 @@ export function OnboardingPlatformsView({ initialSelected }: { initialSelected: 
         </div>
 
         <div className="platform-grid">
-          {PLATFORMS.map(({ key, name, icon: Icon }) => {
+          {SOCIAL_PLATFORMS.map(({ key, name }) => {
             const active = selected.has(key);
+            const Icon = SOCIAL_ICONS[key];
             return (
               <button key={key} className={`platform-chip${active ? " active" : ""}`} onClick={() => toggle(key)}>
                 <div className="platform-chip-icon">

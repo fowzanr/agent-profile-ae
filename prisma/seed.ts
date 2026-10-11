@@ -27,6 +27,7 @@ async function main() {
       instagramUrl: "https://instagram.com",
       linkedinUrl: "https://linkedin.com",
       tiktokUrl: "https://tiktok.com",
+      facebookUrl: "https://facebook.com",
       specialities: "Residential Sales, Off-Plan Sales, Luxury Leasing, Investment Advisory",
       areas: "Dubai",
       languages: "Arabic, English, Hindi",

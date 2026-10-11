@@ -3,15 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { OnboardingProgress } from "@/components/OnboardingProgress";
-import { InstagramIcon, LinkedInIcon, TikTokIcon, LinkIcon } from "@/components/icons";
+import { LinkIcon } from "@/components/icons";
+import { SOCIAL_ICONS } from "@/components/socialIcons";
+import { SOCIAL_PLATFORMS, type SocialUrls } from "@/lib/socials";
 
 type LinkItem = { id: string; label: string; url: string };
-
-const PLATFORM_META: Record<string, { name: string; icon: typeof InstagramIcon; placeholder: string; field: "instagramUrl" | "linkedinUrl" | "tiktokUrl" }> = {
-  instagram: { name: "Instagram", icon: InstagramIcon, placeholder: "https://instagram.com/you", field: "instagramUrl" },
-  linkedin: { name: "LinkedIn", icon: LinkedInIcon, placeholder: "https://linkedin.com/in/you", field: "linkedinUrl" },
-  tiktok: { name: "TikTok", icon: TikTokIcon, placeholder: "https://tiktok.com/@you", field: "tiktokUrl" },
-};
 
 export function OnboardingLinksView({
   platforms,
@@ -19,11 +15,11 @@ export function OnboardingLinksView({
   initialLinks,
 }: {
   platforms: string[];
-  initialUrls: { instagramUrl: string; linkedinUrl: string; tiktokUrl: string };
+  initialUrls: SocialUrls;
   initialLinks: LinkItem[];
 }) {
   const router = useRouter();
-  const shownPlatforms = platforms.length > 0 ? platforms : ["instagram", "linkedin", "tiktok"];
+  const shownPlatforms = SOCIAL_PLATFORMS.filter((p) => platforms.length === 0 || platforms.includes(p.key));
   const [urls, setUrls] = useState(initialUrls);
   const [links, setLinks] = useState(initialLinks);
   const [newLabel, setNewLabel] = useState("");
@@ -95,12 +91,10 @@ export function OnboardingLinksView({
         </div>
 
         <div className="link-input-list">
-          {shownPlatforms.map((key) => {
-            const meta = PLATFORM_META[key];
-            if (!meta) return null;
-            const Icon = meta.icon;
+          {shownPlatforms.map((meta) => {
+            const Icon = SOCIAL_ICONS[meta.key];
             return (
-              <div className="field" key={key}>
+              <div className="field" key={meta.key}>
                 <label style={{ display: "flex", alignItems: "center", gap: 7 }}>
                   <Icon className="w-3.5 h-3.5" />
                   {meta.name}
@@ -122,7 +116,7 @@ export function OnboardingLinksView({
             </div>
             <div>
               <div className="section-title">Additional Links</div>
-              <div className="section-sub">Your website, Facebook — anything else.</div>
+              <div className="section-sub">Your website, a listings page — anything else.</div>
             </div>
           </div>
 
@@ -143,7 +137,7 @@ export function OnboardingLinksView({
           {linkError && <div className="form-error" style={{ marginBottom: 10 }}>{linkError}</div>}
 
           <form className="add-link-row" onSubmit={addLink}>
-            <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="Label, e.g. Facebook" />
+            <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="Label, e.g. Website" />
             <input value={newUrl} onChange={(e) => setNewUrl(e.target.value)} placeholder="https://" type="url" required />
             <button className="btn-secondary" type="submit" disabled={addingLink} style={{ flex: "0 0 auto", padding: "0 16px" }}>
               {addingLink ? "Adding…" : "Add"}

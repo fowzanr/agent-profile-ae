@@ -18,19 +18,16 @@ import {
   AreaIcon,
   HeartIcon,
   CheckIcon,
-  ChevronDownIcon,
   ChevronRightIcon,
   ShareIcon,
-  InstagramIcon,
-  LinkedInIcon,
-  TikTokIcon,
   LinkIcon,
   StarIcon,
   BriefcaseIcon,
   MessageIcon,
-  BuildingIcon,
-  TrendingUpIcon,
 } from "@/components/icons";
+import { SOCIAL_ICONS } from "@/components/socialIcons";
+import { SOCIAL_PLATFORMS, hasAnySocial } from "@/lib/socials";
+import { truncateBio } from "@/lib/bioGenerator";
 
 function digitsOnly(value: string) {
   return value.replace(/[^\d]/g, "");
@@ -58,7 +55,6 @@ export function ProfileView({
   stats: { forSaleCount: number; forRentCount: number };
   previewNotice?: string | null;
 }) {
-  const [bioOpen, setBioOpen] = useState(false);
   const hasSale = stats.forSaleCount > 0;
   const hasRent = stats.forRentCount > 0;
   const [dealType, setDealType] = useState<"sale" | "rent">(hasSale ? "sale" : "rent");
@@ -192,7 +188,7 @@ export function ProfileView({
   }
 
   const hasTestimonials = agent.testimonials.length > 0;
-  const hasSocials = agent.instagramUrl || agent.linkedinUrl || agent.tiktokUrl;
+  const hasSocials = hasAnySocial(agent);
   const hasLinks = agent.links.length > 0;
 
   const generalMessage = `Hi ${agent.name.split(" ")[0]}, I found your profile on agentprofile.ae and I'd like to get in touch.`;
@@ -204,66 +200,107 @@ export function ProfileView({
       <div className="page-shell">
       <div className="page">
         <div className="card profile">
-          <button type="button" className="profile-share-btn" onClick={handleShare} aria-label="Share profile">
-            <ShareIcon className="w-4 h-4" />
-          </button>
-          <div className="id-row">
-            <div className="avatar-wrap">
-              {agent.photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={agent.photoUrl} alt={agent.name} className="avatar avatar-photo" />
-              ) : (
-                <div className="avatar">{agent.avatarInitials}</div>
-              )}
-              {agent.isVerified && agent.isPro && (
-                <div className="verified-badge">
-                  <CheckIcon className="w-[13px] h-[13px]" />
-                </div>
-              )}
-            </div>
-            <div className="id-main">
-              <div className="id-name-row">
-                <h1>{agent.name}</h1>
+          <div className={`profile-hero${agent.coverUrl ? "" : " no-cover"}`}>
+            {agent.coverUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={agent.coverUrl} alt="" className="profile-hero-img" />
+            )}
+            <button type="button" className="profile-share-btn" onClick={handleShare} aria-label="Share profile">
+              <ShareIcon className="w-4 h-4" />
+            </button>
+            <div className="profile-hero-id">
+              <div className="avatar-wrap">
+                {agent.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={agent.photoUrl} alt={agent.name} className="avatar avatar-photo" />
+                ) : (
+                  <div className="avatar">{agent.avatarInitials}</div>
+                )}
+                {agent.isVerified && agent.isPro && (
+                  <div className="verified-badge">
+                    <CheckIcon className="w-[13px] h-[13px]" />
+                  </div>
+                )}
               </div>
-              {agent.role && <p className="role-line">{agent.role}</p>}
-              {agent.agency && <p className="agency">{agent.agency}</p>}
-              <p className="brn">
-                RERA{" "}
-                <span className="info-wrap" ref={brnWrapRef}>
-                  BRN
-                  <button
-                    className="info-btn"
-                    aria-expanded={brnInfoOpen}
-                    aria-label="What is a BRN?"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setBrnInfoOpen((v) => !v);
-                    }}
-                  >
-                    i
-                  </button>
-                  <span className={`info-popover${brnInfoOpen ? " open" : ""}`}>
-                    <span className="info-popover-title">What&apos;s a BRN?</span>
-                    <span className="info-popover-text">
-                      Broker Registration Number — a unique ID issued by Dubai&apos;s RERA (Real Estate Regulatory
-                      Authority) to every licensed broker. It&apos;s how you confirm an agent is legally registered
-                      to practice in Dubai.
-                    </span>
-                  </span>
-                </span>{" "}
-                <b>{agent.brn}</b>
-                {agent.dedLicensed ? " · DED Licensed" : ""} ·{" "}
-                <a
-                  href="https://dubailand.gov.ae/en/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "var(--primary)", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: "2px" }}
-                >
-                  verify on RERA
-                </a>
-              </p>
+              <div className="id-main">
+                <h1>{agent.name}</h1>
+                {agent.role && <p className="role-line">{agent.role}</p>}
+                {agent.agency && <p className="agency">{agent.agency}</p>}
+              </div>
             </div>
           </div>
+
+          <p className="brn">
+            RERA{" "}
+            <span className="info-wrap" ref={brnWrapRef}>
+              BRN
+              <button
+                className="info-btn"
+                aria-expanded={brnInfoOpen}
+                aria-label="What is a BRN?"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setBrnInfoOpen((v) => !v);
+                }}
+              >
+                i
+              </button>
+              <span className={`info-popover${brnInfoOpen ? " open" : ""}`}>
+                <span className="info-popover-title">What&apos;s a BRN?</span>
+                <span className="info-popover-text">
+                  Broker Registration Number — a unique ID issued by Dubai&apos;s RERA (Real Estate Regulatory
+                  Authority) to every licensed broker. It&apos;s how you confirm an agent is legally registered
+                  to practice in Dubai.
+                </span>
+              </span>
+            </span>{" "}
+            <b>{agent.brn}</b>
+            {agent.dedLicensed ? " · DED Licensed" : ""} ·{" "}
+            <a
+              href="https://dubailand.gov.ae/en/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "var(--primary)", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: "2px" }}
+            >
+              verify on RERA
+            </a>
+          </p>
+
+          <div className="profile-stats">
+            <div className="profile-stat">
+              <span className="profile-stat-value">{stats.forSaleCount + stats.forRentCount}</span>
+              <span className="profile-stat-label">Total sales</span>
+            </div>
+            <div className="profile-stat">
+              <span className="profile-stat-value">{agent.yearsExperience}</span>
+              <span className="profile-stat-label">{agent.yearsExperience === 1 ? "Year experience" : "Years experience"}</span>
+            </div>
+            {agent.transactedVolume != null && (
+              <div className="profile-stat">
+                <span className="profile-stat-value">{formatAEDCompact(agent.transactedVolume).replace("AED ", "")}</span>
+                <span className="profile-stat-label">AED transacted</span>
+              </div>
+            )}
+          </div>
+
+          {agent.bio && (
+            <p className="bio-text">{truncateBio(agent.bio)}</p>
+          )}
+
+          {hasSocials && (
+            <div className="social-row-top profile-socials">
+              {SOCIAL_PLATFORMS.map(({ key, field, name }) => {
+                const url = agent[field];
+                if (!url) return null;
+                const Icon = SOCIAL_ICONS[key];
+                return (
+                  <a key={key} className="social-sm" href={url} target="_blank" rel="noopener noreferrer" aria-label={name}>
+                    <Icon className="w-[15px] h-[15px]" />
+                  </a>
+                );
+              })}
+            </div>
+          )}
 
           <a
             className="cta-primary"
@@ -294,26 +331,6 @@ export function ProfileView({
               <CalendarIcon className="w-[15px] h-[15px]" />
               Book
             </a>
-          </div>
-
-          <div className="stat-chips">
-            <div className="stat-chip tone-primary">
-              <BuildingIcon className="w-3.5 h-3.5" />
-              <span className="stat-chip-value">{stats.forSaleCount + stats.forRentCount}</span>
-              <span className="stat-chip-label">Total Sales</span>
-            </div>
-            <div className="stat-chip tone-accent3">
-              <StarIcon className="w-3.5 h-3.5" />
-              <span className="stat-chip-value">{agent.yearsExperience}</span>
-              <span className="stat-chip-label">Experience</span>
-            </div>
-            {agent.transactedVolume != null && (
-              <div className="stat-chip tone-primary">
-                <TrendingUpIcon className="w-3.5 h-3.5" />
-                <span className="stat-chip-value">{formatAEDCompact(agent.transactedVolume).replace("AED ", "")}</span>
-                <span className="stat-chip-label">Transacted (AED)</span>
-              </div>
-            )}
           </div>
 
           {(specialities.length > 0 || areas.length > 0 || languages.length > 0) && (
@@ -363,21 +380,6 @@ export function ProfileView({
                   </div>
                 </div>
               )}
-            </div>
-          )}
-
-          {agent.bio && (
-            <div className="bio-block">
-              <span className="tags-label">Agent Bio</span>
-              <p className={`bio-text${bioOpen ? "" : " clamp"}`}>{agent.bio}</p>
-              <button
-                className={`read-more${bioOpen ? " open" : ""}`}
-                aria-expanded={bioOpen}
-                onClick={() => setBioOpen((v) => !v)}
-              >
-                {bioOpen ? "Read less" : "Read more"}
-                <ChevronDownIcon className="w-[11px] h-[11px]" />
-              </button>
             </div>
           )}
 
@@ -591,26 +593,6 @@ export function ProfileView({
               </div>
             </div>
           </>
-        )}
-
-        {hasSocials && (
-          <div className="social-row-top" style={{ justifyContent: "center" }}>
-            {agent.instagramUrl && (
-              <a className="social-sm" href={agent.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                <InstagramIcon className="w-[15px] h-[15px]" />
-              </a>
-            )}
-            {agent.linkedinUrl && (
-              <a className="social-sm" href={agent.linkedinUrl} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                <LinkedInIcon className="w-[15px] h-[15px]" />
-              </a>
-            )}
-            {agent.tiktokUrl && (
-              <a className="social-sm" href={agent.tiktokUrl} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
-                <TikTokIcon className="w-[15px] h-[15px]" />
-              </a>
-            )}
-          </div>
         )}
 
         {hasLinks && (

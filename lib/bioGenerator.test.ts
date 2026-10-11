@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { generateBio } from "./bioGenerator";
+import { describe, it, expect } from "vitest";
+import { generateBio, truncateBio } from "./bioGenerator";
+import { BIO_MAX_LENGTH } from "./constants";
 
 const baseInput = {
   name: "Ahmed Al Falasi",
@@ -11,83 +12,74 @@ const baseInput = {
   languages: "English, Arabic",
 };
 
-afterEach(() => {
-  vi.restoreAllMocks();
-});
-
 describe("generateBio", () => {
-  it("includes the agent's first name, not the full name", () => {
-    const bio = generateBio(baseInput);
-    expect(bio).toContain("Ahmed");
-    expect(bio).not.toContain("Ahmed Al Falasi");
+  it("stays within the Instagram-style length limit", () => {
+    expect(generateBio(baseInput).length).toBeLessThanOrEqual(BIO_MAX_LENGTH);
   });
 
-  it("includes the specialities and areas", () => {
+  it("includes the role, agency, specialities, and areas when they fit", () => {
     const bio = generateBio(baseInput);
-    expect(bio).toContain("Off-plan");
-    expect(bio).toContain("Luxury Villas");
-    expect(bio).toContain("Dubai Marina");
-    expect(bio).toContain("JVC");
+    expect(bio).toContain("Luxury Specialist at Vantage Real Estate");
+    expect(bio).toContain("Off-plan & Luxury Villas");
+    expect(bio).toContain("Dubai Marina, JVC");
+  });
+
+  it("joins three or more specialities as 'A, B & C'", () => {
+    const bio = generateBio({ ...baseInput, specialities: "Off-plan, Villas, Leasing", languages: "" });
+    expect(bio).toContain("Off-plan, Villas & Leasing");
+  });
+
+  it("is split into short lines", () => {
+    expect(generateBio(baseInput).split("\n")).toHaveLength(3);
   });
 
   it("mentions languages when provided", () => {
-    const bio = generateBio(baseInput);
-    expect(bio).toContain("Fluent in English and Arabic");
+    expect(generateBio(baseInput)).toContain("English, Arabic");
   });
 
-  it("omits the language sentence entirely when no languages are given", () => {
+  it("leaves languages out when none are given", () => {
     const bio = generateBio({ ...baseInput, languages: "" });
-    expect(bio).not.toContain("Fluent in");
+    expect(bio.split("\n")[2]).toBe("8 years experience");
   });
 
   it("falls back to generic specialities and areas when left blank", () => {
     const bio = generateBio({ ...baseInput, specialities: "", areas: "" });
-    expect(bio).toContain("residential sales and rentals");
-    expect(bio).toContain("the UAE");
+    expect(bio).toContain("Residential sales & rentals");
+    expect(bio).toContain("across the UAE");
   });
 
-  it("uses just the first name (no dangling 'at') when agency is blank", () => {
+  it("has no dangling 'at' when agency is blank", () => {
     const bio = generateBio({ ...baseInput, agency: "" });
-    expect(bio).not.toMatch(/\bat\s*,/);
-    expect(bio).not.toContain(" at .");
-  });
-
-  it("handles a single-word name without throwing", () => {
-    const bio = generateBio({ ...baseInput, name: "Cher" });
-    expect(bio).toContain("Cher");
-  });
-
-  it("falls back to 'This agent' when the name is empty", () => {
-    const bio = generateBio({ ...baseInput, name: "" });
-    expect(bio).toContain("This agent");
+    expect(bio).not.toMatch(/\bat\s*$/m);
+    expect(bio.split("\n")[0]).toBe("Luxury Specialist");
   });
 
   it("phrases zero years experience as newly licensed, not '0 years'", () => {
-    // template[0] and template[2] both embed experiencePhrase; force selection deterministically
-    vi.spyOn(Math, "random").mockReturnValue(0);
     const bio = generateBio({ ...baseInput, yearsExperience: 0 });
-    expect(bio).toContain("newly licensed");
+    expect(bio).toContain("Newly licensed");
     expect(bio).not.toContain("0 years");
   });
 
-  it("uses singular 'a year' for exactly one year of experience", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0);
+  it("uses singular 'year' for exactly one year", () => {
     const bio = generateBio({ ...baseInput, yearsExperience: 1 });
-    expect(bio).toContain("a year of hands-on experience");
-    expect(bio).not.toContain("1 years");
+    expect(bio).toContain("1 year experience");
   });
 
-  it("uses plural 'N years' for more than one year of experience", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0);
-    const bio = generateBio({ ...baseInput, yearsExperience: 5 });
-    expect(bio).toContain("5 years of hands-on experience");
+  it("uses plural 'years' for more than one year", () => {
+    expect(generateBio({ ...baseInput, yearsExperience: 5 })).toContain("5 years experience");
   });
 
-  it("never produces doubled whitespace", () => {
-    for (let i = 0; i < 10; i++) {
-      const bio = generateBio(baseInput);
-      expect(bio).not.toMatch(/\s{2,}/);
-    }
+  it("drops detail rather than exceeding the limit for long inputs", () => {
+    const bio = generateBio({
+      ...baseInput,
+      agency: "Very Long Brokerage Name International Realty Group LLC",
+      specialities: "Off-plan, Luxury Villas, Penthouses, Commercial Leasing, Holiday Homes",
+      areas: "Dubai Marina, JVC, Palm Jumeirah, Downtown Dubai, Business Bay, Arabian Ranches",
+      languages: "English, Arabic, Hindi, Urdu, Russian",
+    });
+    expect(bio.length).toBeLessThanOrEqual(BIO_MAX_LENGTH);
+    expect(bio).toContain("Off-plan");
+    expect(bio).toContain("Dubai Marina");
   });
 
   it("never returns an empty string", () => {
@@ -102,9 +94,17 @@ describe("generateBio", () => {
     });
     expect(bio.length).toBeGreaterThan(0);
   });
+});
 
-  it("joins three or more languages with an Oxford comma", () => {
-    const bio = generateBio({ ...baseInput, languages: "English, Arabic, Hindi" });
-    expect(bio).toContain("Fluent in English, Arabic, and Hindi");
+describe("truncateBio", () => {
+  it("leaves short text alone", () => {
+    expect(truncateBio("Hello there")).toBe("Hello there");
+  });
+
+  it("cuts long text at a word boundary with an ellipsis", () => {
+    const out = truncateBio("word ".repeat(60).trim());
+    expect(out.length).toBeLessThanOrEqual(BIO_MAX_LENGTH);
+    expect(out.endsWith("…")).toBe(true);
+    expect(out).not.toMatch(/wor…$/);
   });
 });

@@ -473,8 +473,8 @@ export default function Home() {
       </section>
 
       <section className="land-cta">
-        <div ref={ctaRef} className={ctaClass}>
-          <div className="land-cta-glow" />
+        <div className="land-cta-glow" />
+        <div ref={ctaRef} className={`land-cta-inner ${ctaClass}`}>
           <h2>Ready to build yours?</h2>
           <p>Set up your profile in under two minutes — no credit card, no catch.</p>
           <Link className="land-cta-btn" href="/signup">

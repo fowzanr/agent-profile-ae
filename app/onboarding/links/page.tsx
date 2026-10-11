@@ -1,4 +1,5 @@
 import { requireAgent } from "@/lib/currentAgent";
+import { socialUrlsOf } from "@/lib/socials";
 import { OnboardingLinksView } from "@/components/onboarding/OnboardingLinksView";
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
@@ -9,11 +10,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
   return (
     <OnboardingLinksView
       platforms={platforms}
-      initialUrls={{
-        instagramUrl: agent.instagramUrl ?? "",
-        linkedinUrl: agent.linkedinUrl ?? "",
-        tiktokUrl: agent.tiktokUrl ?? "",
-      }}
+      initialUrls={socialUrlsOf(agent)}
       initialLinks={agent.links.map((l) => ({ id: l.id, label: l.label, url: l.url }))}
     />
   );

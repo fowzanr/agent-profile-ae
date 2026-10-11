@@ -25,6 +25,9 @@ model Agent {
   agency         String
   avatarInitials String
   photoUrl       String?
+  photoSourceUrl String?
+  coverUrl       String?
+  coverSourceUrl String?
   accountType    String   @default("agent") // "agent" | "agency"
   brn            String
   dedLicensed    Boolean  @default(true)
@@ -37,6 +40,10 @@ model Agent {
   instagramUrl   String?
   linkedinUrl    String?
   tiktokUrl      String?
+  facebookUrl    String?
+  youtubeUrl     String?
+  pinterestUrl   String?
+  spotifyUrl     String?
   specialities   String // comma-separated
   areas          String // comma-separated
   languages      String // comma-separated
