@@ -141,6 +141,7 @@ export function PropertyDetailView({ property, agent }: { property: Property; ag
           </div>
 
           <div className="headline">
+            <h1 className="property-title">{property.title}</h1>
             <div className="price-lg">
               {formatAED(property.price)}
               {property.listingType === "rent" ? ` ${rentalSuffix(property.rentalPeriod)}` : ""}
@@ -229,7 +230,7 @@ export function PropertyDetailView({ property, agent }: { property: Property; ag
                 rel="noopener noreferrer"
                 style={{ color: "var(--primary)", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: "2px" }}
               >
-                verify on the Dubai REST registry
+                verify on RERA
               </a>
             </p>
           </div>
