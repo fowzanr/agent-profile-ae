@@ -81,6 +81,8 @@ model AgentLink {
   agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
   label     String
   url       String
+  kind      String?  // "video" | "audio" | "course" | "community" | "website"; null = detect from the URL
+  pinned    Boolean  @default(false) // shown first and larger on the profile; at most one per agent
   order     Int      @default(0)
   createdAt DateTime @default(now())
 }

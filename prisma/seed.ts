@@ -77,8 +77,11 @@ async function main() {
       transactedVolume: 45500000,
       links: {
         create: [
-          { label: "Vantage Real Estate", url: productionDemo ? "https://example.com" : "https://vantage.ae", order: 0 },
-          { label: "Book a valuation", url: demo.social("https://calendly.com/ahmed-vantage"), order: 1 },
+          { label: "Palm Jumeirah villa tour", url: "https://www.youtube.com/watch?v=aqz-KE-bpKQ", kind: "video", pinned: true, order: 0 },
+          { label: "Dubai Property Minute", url: "https://open.spotify.com/track/11dFghVXANMlKmJXsNCbNl", kind: "audio", order: 1 },
+          { label: "Off-Plan Investing 101", url: productionDemo ? "https://example.com/course" : "https://vantage.teachable.com/p/off-plan-101", kind: "course", order: 2 },
+          { label: "Dubai Buyers Circle", url: productionDemo ? "https://example.com/community" : "https://chat.whatsapp.com/DubaiBuyersCircle", kind: "community", order: 3 },
+          { label: "Vantage Real Estate", url: productionDemo ? "https://example.com" : "https://vantage.ae", kind: "website", order: 4 },
         ],
       },
       properties: {

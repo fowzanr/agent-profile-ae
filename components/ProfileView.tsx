@@ -20,11 +20,11 @@ import {
   CheckIcon,
   ChevronRightIcon,
   ShareIcon,
-  LinkIcon,
   StarIcon,
 } from "@/components/icons";
 import { SOCIAL_ICONS } from "@/components/socialIcons";
 import { BookingDialog } from "@/components/BookingDialog";
+import { FeaturedLinks } from "@/components/FeaturedLinks";
 import { availabilityOf } from "@/lib/booking";
 import { SOCIAL_PLATFORMS, hasAnySocial } from "@/lib/socials";
 import { truncateBio } from "@/lib/bioGenerator";
@@ -627,6 +627,8 @@ export function ProfileView({
           </>
         )}
 
+        {hasLinks && <FeaturedLinks links={agent.links} />}
+
         {hasTestimonials && (
           <>
             <div className="section-head">
@@ -644,15 +646,6 @@ export function ProfileView({
               </div>
             </div>
           </>
-        )}
-
-        {hasLinks && (
-          <div className="extra-links">
-            <a className="extra-link" href={agent.links[0].url} target="_blank" rel="noopener noreferrer">
-              <LinkIcon className="w-[13px] h-[13px]" />
-              {agent.links[0].label}
-            </a>
-          </div>
         )}
 
         <footer className="site-footer">
