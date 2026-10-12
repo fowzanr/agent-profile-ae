@@ -86,9 +86,9 @@ const STEPS = [
     body: "Add your license details, a photo and cover, a short bio, your socials, and how clients can book you.",
     mockup: (
       <div className="mini-profile">
-        <div className="avatar-sm">AF</div>
+        <div className="avatar-sm">YN</div>
         <div className="mini-profile-info">
-          <div className="mini-profile-name">Ahmed Al Falasi</div>
+          <div className="mini-profile-name">Your Name</div>
           <div className="mini-profile-role">Real Estate Agent</div>
         </div>
       </div>
@@ -244,6 +244,17 @@ export default function Home() {
     router.push(`/signup?${params.toString()}`);
   }
 
+  // The hero preview is an example built from whatever the visitor types, not a real agent.
+  const previewName = name.trim().replace(/\s+/g, " ").slice(0, 28) || "Your Name";
+  const previewInitials =
+    previewName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase())
+      .join("") || "YN";
+  const previewSlug = slugify(name.trim()) || "yourname";
+
   return (
     <div className="land-page">
       <header className="land-nav" ref={navRef}>
@@ -322,26 +333,26 @@ export default function Home() {
                 <span className="browser-dot dot-g" />
                 <span className="browser-url">
                   <LinkIcon className="w-3 h-3" />
-                  agentprofile.ae/ahmed
+                  agentprofile.ae/{previewSlug}
                 </span>
               </div>
               <div className="browser-body">
                 <div className="card profile land-mockup-card">
                   <div className="profile-hero">
+                    <span className="land-mockup-example">Example</span>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/seed/ahmed-cover.svg" alt="" className="profile-hero-img" />
                     <div className="profile-hero-id">
                       <div className="avatar-wrap">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/seed/ahmed-photo.svg" alt="" className="avatar avatar-photo" />
+                        <div className="avatar">{previewInitials}</div>
                         <div className="verified-badge">
                           <CheckIcon className="w-[13px] h-[13px]" />
                         </div>
                       </div>
                       <div className="id-main">
-                        <div className="mockup-name">Ahmed Al Falasi</div>
-                        <p className="role-line">Luxury &amp; Off-Plan Specialist</p>
-                        <p className="agency">Vantage Real Estate</p>
+                        <div className="mockup-name">{previewName}</div>
+                        <p className="role-line">Real Estate Agent</p>
+                        <p className="agency">Your Agency</p>
                       </div>
                     </div>
                   </div>
@@ -472,7 +483,7 @@ export default function Home() {
                 </div>
                 <div>
                   <div className="land-trust-card-label">RERA BRN</div>
-                  <div className="land-trust-card-value">41527</div>
+                  <div className="land-trust-card-value">Your BRN</div>
                 </div>
                 <span className="land-trust-pill pending">Checking</span>
               </div>
@@ -482,7 +493,7 @@ export default function Home() {
                 </div>
                 <div>
                   <div className="land-trust-card-label">DED license</div>
-                  <div className="land-trust-card-value">Vantage Real Estate</div>
+                  <div className="land-trust-card-value">Your agency</div>
                 </div>
                 <span className="land-trust-pill done">
                   <CheckIcon className="w-3 h-3" />
@@ -495,7 +506,7 @@ export default function Home() {
                 </div>
                 <div>
                   <div className="land-trust-card-label">Public profile</div>
-                  <div className="land-trust-card-value">agentprofile.ae/ahmed</div>
+                  <div className="land-trust-card-value">agentprofile.ae/{previewSlug}</div>
                 </div>
                 <span className="land-trust-pill live">
                   <span className="land-trust-pulse" />
