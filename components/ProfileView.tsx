@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Agent, AgentLink, Property, Testimonial } from "@prisma/client";
 import { PropertyArt } from "@/components/PropertyArt";
 import { formatAED, formatAEDCompact, csvToList, rentalSuffix, rentalLabel, RENTAL_PERIODS } from "@/lib/format";
 import { track } from "@/lib/track";
-import { LISTINGS_ENABLED, LEADS_ENABLED } from "@/lib/constants";
+import { LEADS_ENABLED, LISTINGS_ENABLED, RERA_BROKERS_URL } from "@/lib/constants";
 import {
   WhatsAppIcon,
   PhoneIcon,
@@ -22,10 +22,10 @@ import {
   ShareIcon,
   LinkIcon,
   StarIcon,
-  BriefcaseIcon,
-  MessageIcon,
 } from "@/components/icons";
 import { SOCIAL_ICONS } from "@/components/socialIcons";
+import { BookingDialog } from "@/components/BookingDialog";
+import { availabilityOf } from "@/lib/booking";
 import { SOCIAL_PLATFORMS, hasAnySocial } from "@/lib/socials";
 import { truncateBio } from "@/lib/bioGenerator";
 
@@ -46,6 +46,47 @@ type AgentWithRelations = Agent & {
   links: AgentLink[];
 };
 
+/** Decorative section break: short brand bar, gold dot, fading hairline. */
+function ProfileDivider() {
+  return (
+    <div className="profile-divider" aria-hidden="true">
+      <span className="profile-divider-dot" />
+    </div>
+  );
+}
+
+/** Counts a stat up from zero on first render, e.g. 19 or "45.5M". Respects reduced motion. */
+function CountUp({ value, className }: { value: number | string; className?: string }) {
+  const text = String(value);
+  const match = text.match(/^(\d+(?:\.\d+)?)(.*)$/);
+  const target = match ? parseFloat(match[1]) : NaN;
+  const decimals = match?.[1].split(".")[1]?.length ?? 0;
+  const suffix = match?.[2] ?? "";
+  const [shown, setShown] = useState(text);
+
+  useEffect(() => {
+    if (Number.isNaN(target) || target === 0) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const duration = 900;
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setShown(`${(target * eased).toFixed(decimals)}${suffix}`);
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target, decimals, suffix]);
+
+  return (
+    <span className={className} aria-label={text}>
+      {shown}
+    </span>
+  );
+}
+
 export function ProfileView({
   agent,
   stats,
@@ -63,6 +104,7 @@ export function ProfileView({
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [brnInfoOpen, setBrnInfoOpen] = useState(false);
   const [shareLabel, setShareLabel] = useState("Share this profile");
+  const [bookingOpen, setBookingOpen] = useState(false);
   const brnWrapRef = useRef<HTMLSpanElement>(null);
   const [leadName, setLeadName] = useState("");
   const [leadContact, setLeadContact] = useState("");
@@ -192,11 +234,20 @@ export function ProfileView({
   const hasLinks = agent.links.length > 0;
 
   const generalMessage = `Hi ${agent.name.split(" ")[0]}, I found your profile on agentprofile.ae and I'd like to get in touch.`;
-  const bookMessage = `Hi ${agent.name.split(" ")[0]}, I'd like to book a viewing. Here's a good time for me: `;
+  // Agents choose where Book goes: their own booking link, or the built-in request form (emailed to them).
+  const useBookingLink = agent.bookingMode === "link" && Boolean(agent.bookingUrl);
 
   return (
     <>
       {previewNotice && <div className="preview-notice-banner">{previewNotice}</div>}
+      {bookingOpen && (
+        <BookingDialog
+          agentId={agent.id}
+          agentFirstName={agent.name.split(" ")[0]}
+          availability={availabilityOf(agent)}
+          onClose={() => setBookingOpen(false)}
+        />
+      )}
       <div className="page-shell">
       <div className="page">
         <div className="card profile">
@@ -257,7 +308,7 @@ export function ProfileView({
             <b>{agent.brn}</b>
             {agent.dedLicensed ? " · DED Licensed" : ""} ·{" "}
             <a
-              href="https://dubailand.gov.ae/en/"
+              href={RERA_BROKERS_URL}
               target="_blank"
               rel="noopener noreferrer"
               style={{ color: "var(--primary)", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: "2px" }}
@@ -266,36 +317,42 @@ export function ProfileView({
             </a>
           </p>
 
-          <div className="profile-stats">
-            <div className="profile-stat">
-              <span className="profile-stat-value">{stats.forSaleCount + stats.forRentCount}</span>
-              <span className="profile-stat-label">Total sales</span>
+          <div className="stat-strip">
+            <div className="stat-item">
+              <CountUp className="stat-value" value={stats.forSaleCount} />
+              <span className="stat-label">Sales</span>
             </div>
-            <div className="profile-stat">
-              <span className="profile-stat-value">{agent.yearsExperience}</span>
-              <span className="profile-stat-label">{agent.yearsExperience === 1 ? "Year experience" : "Years experience"}</span>
+            <div className="stat-item">
+              <CountUp className="stat-value" value={stats.forRentCount} />
+              <span className="stat-label">Rentals</span>
+            </div>
+            <div className="stat-item">
+              <CountUp className="stat-value" value={agent.yearsExperience} />
+              <span className="stat-label">{agent.yearsExperience === 1 ? "Year" : "Years"}</span>
             </div>
             {agent.transactedVolume != null && (
-              <div className="profile-stat">
-                <span className="profile-stat-value">{formatAEDCompact(agent.transactedVolume).replace("AED ", "")}</span>
-                <span className="profile-stat-label">AED transacted</span>
+              <div className="stat-item">
+                <CountUp className="stat-value" value={formatAEDCompact(agent.transactedVolume).replace("AED ", "")} />
+                <span className="stat-label">AED volume</span>
               </div>
             )}
           </div>
+
+          <ProfileDivider />
 
           {agent.bio && (
             <p className="bio-text">{truncateBio(agent.bio)}</p>
           )}
 
           {hasSocials && (
-            <div className="social-row-top profile-socials">
+            <div className="profile-socials">
               {SOCIAL_PLATFORMS.map(({ key, field, name }) => {
                 const url = agent[field];
                 if (!url) return null;
                 const Icon = SOCIAL_ICONS[key];
                 return (
-                  <a key={key} className="social-sm" href={url} target="_blank" rel="noopener noreferrer" aria-label={name}>
-                    <Icon className="w-[15px] h-[15px]" />
+                  <a key={key} className="social-plain" href={url} target="_blank" rel="noopener noreferrer" aria-label={name}>
+                    <Icon className="w-[18px] h-[18px]" />
                   </a>
                 );
               })}
@@ -321,66 +378,60 @@ export function ProfileView({
               <MailIcon className="w-[15px] h-[15px]" />
               Email
             </a>
-            <a
-              className="cta-tile"
-              href={waLink(agent.whatsapp, bookMessage)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => track(agent.id, "book_click")}
-            >
-              <CalendarIcon className="w-[15px] h-[15px]" />
-              Book
-            </a>
+            {useBookingLink ? (
+              <a
+                className="cta-tile"
+                href={agent.bookingUrl ?? undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => track(agent.id, "book_click")}
+              >
+                <CalendarIcon className="w-[15px] h-[15px]" />
+                Book
+              </a>
+            ) : (
+              <button
+                type="button"
+                className="cta-tile"
+                onClick={() => {
+                  track(agent.id, "book_click");
+                  setBookingOpen(true);
+                }}
+              >
+                <CalendarIcon className="w-[15px] h-[15px]" />
+                Book
+              </button>
+            )}
           </div>
 
           {(specialities.length > 0 || areas.length > 0 || languages.length > 0) && (
-            <div className="detail-rows">
-              {specialities.length > 0 && (
-                <div className="detail-row">
-                  <div className="drow-head">
-                    <BriefcaseIcon className="w-3 h-3" />
-                    <span className="drow-label">Specialities</span>
+            <>
+            <ProfileDivider />
+            <dl className="detail-list">
+              {[
+                { label: "Specialities", items: specialities },
+                { label: "Areas", items: areas },
+                { label: "Languages", items: languages },
+              ]
+                .filter((row) => row.items.length > 0)
+                .map((row) => (
+                  <div className="detail-list-row" key={row.label}>
+                    <dt>{row.label}</dt>
+                    <dd>
+                      {row.items.map((item, i) => (
+                        <Fragment key={item}>
+                          <span className="detail-list-item">
+                            {item}
+                            {i < row.items.length - 1 && <span className="detail-list-sep" aria-hidden="true">{" ·"}</span>}
+                          </span>
+                          {i < row.items.length - 1 && " "}
+                        </Fragment>
+                      ))}
+                    </dd>
                   </div>
-                  <div className="drow-chips">
-                    {specialities.map((s) => (
-                      <span className="drow-chip" key={s}>
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {areas.length > 0 && (
-                <div className="detail-row">
-                  <div className="drow-head">
-                    <PinIcon className="w-3 h-3" />
-                    <span className="drow-label">Areas</span>
-                  </div>
-                  <div className="drow-chips">
-                    {areas.map((a) => (
-                      <span className="drow-chip" key={a}>
-                        {a}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {languages.length > 0 && (
-                <div className="detail-row">
-                  <div className="drow-head">
-                    <MessageIcon className="w-3 h-3" />
-                    <span className="drow-label">Languages</span>
-                  </div>
-                  <div className="drow-chips">
-                    {languages.map((l) => (
-                      <span className="drow-chip" key={l}>
-                        {l}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+                ))}
+            </dl>
+            </>
           )}
 
           {LEADS_ENABLED && (

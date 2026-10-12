@@ -14,6 +14,7 @@ datasource db {
 model Agent {
   id             String   @id @default(cuid())
   slug           String   @unique
+  slugChangedAt  DateTime? // last time the agent changed their link; null = never (lock counts from createdAt)
   email          String   @unique
   passwordHash   String
   emailVerifiedAt           DateTime? // null until the agent confirms their email
@@ -44,6 +45,12 @@ model Agent {
   youtubeUrl     String?
   pinterestUrl   String?
   spotifyUrl     String?
+  bookingMode    String   @default("form") // "form" (requests emailed to the agent) | "link" (opens bookingUrl)
+  bookingUrl     String?
+  bookingDays        String @default("1,2,3,4,5,6") // weekdays the agent takes bookings, 0 = Sunday … 6 = Saturday
+  bookingStartTime   String @default("09:00") // Dubai time, "HH:MM"
+  bookingEndTime     String @default("19:00") // Dubai time, "HH:MM"; the last slot ends here
+  bookingSlotMinutes Int    @default(30)
   specialities   String // comma-separated
   areas          String // comma-separated
   languages      String // comma-separated

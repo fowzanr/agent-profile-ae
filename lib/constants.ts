@@ -4,6 +4,9 @@
 export const LISTINGS_ENABLED = false;
 export const LEADS_ENABLED = false;
 
+// Dubai Land Department's public list of licensed brokers, where anyone can check a BRN.
+export const RERA_BROKERS_URL = "https://dubailand.gov.ae/en/eservices/licensed-real-estate-brokers/licensed-real-estate-brokers-list#/";
+
 // Same as Instagram: bios are short and always shown in full.
 export const BIO_MAX_LENGTH = 150;
 

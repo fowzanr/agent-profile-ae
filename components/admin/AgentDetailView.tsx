@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { Agent, Lead, Property } from "@prisma/client";
 import { formatAED } from "@/lib/format";
 import { SOCIAL_PLATFORMS, hasAnySocial, socialUrlsOf, type SocialUrls } from "@/lib/socials";
+import { RERA_BROKERS_URL } from "@/lib/constants";
 
 type AgentWithRelations = Agent & { properties: Property[]; leads: Lead[] };
 
@@ -284,7 +285,7 @@ export function AgentDetailView({
               <div className="admin-verify-label">BRN / DED license — {form.brn || "not set"}</div>
               <a
                 className="admin-open-link"
-                href="https://dubailand.gov.ae/en/eservices/licensed-real-estate-brokers/licensed-real-estate-brokers-list#/"
+                href={RERA_BROKERS_URL}
                 target="_blank"
                 rel="noreferrer"
               >

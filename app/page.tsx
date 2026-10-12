@@ -117,7 +117,7 @@ const FAQS = [
   },
   {
     q: "Can I change my link later?",
-    a: "Yes, anytime from your dashboard, as long as the new one isn't already taken.",
+    a: "Yes, from your dashboard, as long as the new one isn't already taken. To keep shared links and QR codes working, a link can be changed once every 14 days.",
   },
   {
     q: "How is this different from just posting on Instagram?",

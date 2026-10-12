@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="500" viewBox="0 0 1500 500">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F6B98A"/>
+      <stop offset="0.55" stop-color="#E9D3B2"/>
+      <stop offset="1" stop-color="#9CC3C9"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5E9AA6"/>
+      <stop offset="1" stop-color="#2F6470"/>
+    </linearGradient>
+  </defs>
+  <rect width="1500" height="500" fill="url(#sky)"/>
+  <circle cx="1180" cy="170" r="70" fill="#FBE3C2" opacity="0.85"/>
+  <g fill="#3E5C66" opacity="0.55">
+    <rect x="60" y="250" width="70" height="150"/><rect x="150" y="210" width="55" height="190"/>
+    <rect x="1290" y="230" width="60" height="170"/><rect x="1370" y="260" width="80" height="140"/>
+  </g>
+  <g fill="#244550">
+    <rect x="230" y="190" width="80" height="210"/><rect x="330" y="140" width="60" height="260"/>
+    <rect x="410" y="230" width="90" height="170"/><rect x="520" y="170" width="70" height="230"/>
+    <path d="M700 400 L700 120 L718 60 L736 20 L754 60 L772 120 L772 400 Z"/>
+    <rect x="610" y="210" width="70" height="190"/><rect x="800" y="180" width="85" height="220"/>
+    <path d="M905 400 L905 150 Q960 90 1015 150 L1015 400 Z"/>
+    <rect x="1035" y="220" width="70" height="180"/><rect x="1125" y="250" width="90" height="150"/>
+  </g>
+  <g fill="#F7E6C9" opacity="0.7">
+    <rect x="345" y="170" width="8" height="8"/><rect x="365" y="200" width="8" height="8"/><rect x="345" y="240" width="8" height="8"/>
+    <rect x="820" y="210" width="8" height="8"/><rect x="845" y="250" width="8" height="8"/><rect x="820" y="290" width="8" height="8"/>
+    <rect x="720" y="160" width="6" height="6"/><rect x="738" y="210" width="6" height="6"/><rect x="720" y="260" width="6" height="6"/>
+  </g>
+  <rect y="400" width="1500" height="100" fill="url(#sea)"/>
+  <g stroke="#CFE4E6" stroke-width="3" opacity="0.45" stroke-linecap="round">
+    <line x1="120" y1="430" x2="260" y2="430"/><line x1="520" y1="455" x2="700" y2="455"/>
+    <line x1="900" y1="435" x2="1080" y2="435"/><line x1="1250" y1="465" x2="1400" y2="465"/>
+  </g>
+</svg>

@@ -11,6 +11,8 @@ import { ChipMultiSelect } from "@/components/ChipMultiSelect";
 import { TagSelect } from "@/components/TagSelect";
 import { ComboInput } from "@/components/ComboInput";
 import { SOCIAL_PLATFORMS, hasAnySocial, socialUrlsOf } from "@/lib/socials";
+import { DAY_NAMES, SLOT_LENGTHS, fromMinutes, parseBookingDays, slotTimes } from "@/lib/booking";
+import { SLUG_LOCK_DAYS, formatUnlockDate, slugUnlocksAt } from "@/lib/slugLock";
 import { ImageCropper, downscaleImage, uploadImageBlob } from "@/components/ImageCropper";
 import { PropertyForm, emptyPropertyForm, propertyToFormState, type PropertyFormState } from "@/components/PropertyForm";
 import {
@@ -314,6 +316,9 @@ function SectionHeader({
   );
 }
 
+// Booking hours offered in the dashboard, every 30 minutes from 06:00 to 23:00.
+const HOUR_OPTIONS = Array.from({ length: 35 }, (_, i) => fromMinutes(6 * 60 + i * 30));
+
 type ProfileImageField = "photoUrl" | "coverUrl";
 type ProfileImageSourceField = "photoSourceUrl" | "coverSourceUrl";
 
@@ -334,6 +339,12 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
     phone: agent.phone,
     contactEmail: agent.contactEmail,
     ...socialUrlsOf(agent),
+    bookingMode: (agent.bookingMode === "link" ? "link" : "form") as "form" | "link",
+    bookingUrl: agent.bookingUrl ?? "",
+    bookingDays: agent.bookingDays,
+    bookingStartTime: agent.bookingStartTime,
+    bookingEndTime: agent.bookingEndTime,
+    bookingSlotMinutes: agent.bookingSlotMinutes,
     specialities: agent.specialities,
     areas: agent.areas,
     languages: agent.languages,
@@ -376,6 +387,11 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
   const [editError, setEditError] = useState<string | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [uploadingSlot, setUploadingSlot] = useState<1 | 2 | 3 | null>(null);
+  const bookingSlotCount = slotTimes({
+    start: form.bookingStartTime,
+    end: form.bookingEndTime,
+    slotMinutes: form.bookingSlotMinutes,
+  }).length;
   const [uploadingImage, setUploadingImage] = useState<ProfileImageField | null>(null);
   const [cropTarget, setCropTarget] = useState<{ field: ProfileImageField; src: string; file?: File } | null>(null);
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0);
@@ -392,6 +408,8 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
   const [slugSaving, setSlugSaving] = useState(false);
   const [slugError, setSlugError] = useState<string | null>(null);
   const [slugMsg, setSlugMsg] = useState<string | null>(null);
+  const [slugUnlockDate, setSlugUnlockDate] = useState(() => slugUnlocksAt(agent));
+  const slugLocked = slugUnlockDate.getTime() > Date.now();
   const [savingAvailability, setSavingAvailability] = useState(false);
   const [submittedForReview, setSubmittedForReview] = useState(agent.submittedForReview);
   const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "sent">("idle");
@@ -478,6 +496,7 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
 
     setSlug(next);
     setSlugInput(next);
+    setSlugUnlockDate(slugUnlocksAt({ slugChangedAt: new Date(), createdAt: agent.createdAt }));
     setSlugMsg("Updated");
     refreshPreview();
     setTimeout(() => setSlugMsg(null), 2500);
@@ -603,6 +622,25 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
     e.preventDefault();
     setProfileError(null);
     setSaveMsg(null);
+
+    if (form.bookingMode === "form") {
+      if (parseBookingDays(form.bookingDays).length === 0) {
+        setProfileTab("contact");
+        setProfileError("Pick at least one day you take viewings.");
+        return;
+      }
+      if (bookingSlotCount === 0) {
+        setProfileTab("contact");
+        setProfileError("Your viewing hours need to end after they start, with room for at least one viewing.");
+        return;
+      }
+    }
+
+    if (form.bookingMode === "link" && !/^https?:\/\/\S+\.\S+/.test(form.bookingUrl.trim())) {
+      setProfileTab("contact");
+      setProfileError("Add your booking link (starting with https://), or switch Book back to the booking form.");
+      return;
+    }
 
     if (form.bio.length > BIO_MAX_LENGTH) {
       setProfileError(`Your bio is ${form.bio.length} characters. Shorten it to ${BIO_MAX_LENGTH} or fewer to save.`);
@@ -1294,6 +1332,120 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
                       />
                     </div>
                   </div>
+
+                  <div className="sub-block">
+                    <div className="sub-block-head">
+                      <CalendarIcon className="w-3.5 h-3.5" />
+                      <div>
+                        <div className="sub-block-title">Book button</div>
+                        <div className="sub-block-sub">Choose what happens when a client taps Book on your profile.</div>
+                      </div>
+                    </div>
+                    <div className="booking-mode-options" role="radiogroup" aria-label="Book button">
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={form.bookingMode === "form"}
+                        className={`booking-mode-option${form.bookingMode === "form" ? " active" : ""}`}
+                        onClick={() => update("bookingMode", "form")}
+                      >
+                        <span className="booking-mode-title">Booking form</span>
+                        <span className="booking-mode-desc">
+                          Clients pick a date and time on your page. Requests are emailed to{" "}
+                          <b>{form.contactEmail.trim() || agent.email}</b>.
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={form.bookingMode === "link"}
+                        className={`booking-mode-option${form.bookingMode === "link" ? " active" : ""}`}
+                        onClick={() => update("bookingMode", "link")}
+                      >
+                        <span className="booking-mode-title">My booking link</span>
+                        <span className="booking-mode-desc">Send clients to Calendly, Cal.com, or any other booking page.</span>
+                      </button>
+                    </div>
+                    {form.bookingMode === "form" && (
+                      <div className="booking-hours">
+                        <div className="field">
+                          <label>Days you take viewings</label>
+                          <div className="booking-hours-days" role="group" aria-label="Days you take viewings">
+                            {DAY_NAMES.map((name, day) => {
+                              const days = parseBookingDays(form.bookingDays);
+                              const on = days.includes(day);
+                              return (
+                                <button
+                                  key={name}
+                                  type="button"
+                                  aria-pressed={on}
+                                  className={`booking-hours-day${on ? " active" : ""}`}
+                                  onClick={() =>
+                                    update(
+                                      "bookingDays",
+                                      (on ? days.filter((d) => d !== day) : [...days, day]).sort((a, b) => a - b).join(","),
+                                    )
+                                  }
+                                >
+                                  {name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div className="booking-hours-row">
+                          <div className="field">
+                            <label>From</label>
+                            <select value={form.bookingStartTime} onChange={(e) => update("bookingStartTime", e.target.value)}>
+                              {HOUR_OPTIONS.map((t) => (
+                                <option key={t} value={t}>
+                                  {t}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="field">
+                            <label>Until</label>
+                            <select value={form.bookingEndTime} onChange={(e) => update("bookingEndTime", e.target.value)}>
+                              {HOUR_OPTIONS.map((t) => (
+                                <option key={t} value={t}>
+                                  {t}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="field">
+                            <label>Each viewing</label>
+                            <select
+                              value={form.bookingSlotMinutes}
+                              onChange={(e) => update("bookingSlotMinutes", Number(e.target.value))}
+                            >
+                              {SLOT_LENGTHS.map((m) => (
+                                <option key={m} value={m}>
+                                  {m === 60 ? "1 hour" : `${m} min`}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        <p className="field-hint">
+                          Clients see open times for the next two weeks, in Dubai time
+                          {bookingSlotCount > 0 ? ` — ${bookingSlotCount} slots a day.` : "."}
+                        </p>
+                      </div>
+                    )}
+                    {form.bookingMode === "link" && (
+                      <div className="field" style={{ marginTop: 14 }}>
+                        <label>Booking link</label>
+                        <input
+                          type="url"
+                          value={form.bookingUrl}
+                          onChange={(e) => update("bookingUrl", e.target.value)}
+                          placeholder="https://calendly.com/you"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 )}
 
@@ -1801,11 +1953,26 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
                     <label>Custom URL</label>
                     <div className="slug-edit-row">
                       <span className="slug-prefix">agentprofile.ae/</span>
-                      <input value={slugInput} onChange={(e) => setSlugInput(e.target.value)} />
-                      <button type="button" className="btn-secondary" onClick={updateSlug} disabled={slugSaving}>
+                      <input
+                        value={slugInput}
+                        onChange={(e) => setSlugInput(e.target.value)}
+                        readOnly={slugLocked}
+                        aria-describedby="slug-lock-hint"
+                      />
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={updateSlug}
+                        disabled={slugSaving || slugLocked}
+                      >
                         {slugSaving ? "Saving…" : "Update"}
                       </button>
                     </div>
+                    <p className="field-hint" id="slug-lock-hint">
+                      {slugLocked
+                        ? `Links can be changed once every ${SLUG_LOCK_DAYS} days. You can change yours again on ${formatUnlockDate(slugUnlockDate)}.`
+                        : `Once you change it, it stays locked for ${SLUG_LOCK_DAYS} days — your old link stops working, so update anywhere you've shared it.`}
+                    </p>
                     {slugError && (
                       <div className="form-error" style={{ marginTop: 8 }}>
                         {slugError}

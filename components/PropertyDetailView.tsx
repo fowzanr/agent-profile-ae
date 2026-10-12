@@ -7,6 +7,7 @@ import { PropertyArt } from "@/components/PropertyArt";
 import { formatAED, rentalSuffix, rentalLabel } from "@/lib/format";
 import { furnishingLabel, ownershipLabel, usageLabel, mapsLink } from "@/lib/propertyMeta";
 import { track } from "@/lib/track";
+import { RERA_BROKERS_URL } from "@/lib/constants";
 import {
   ArrowLeftIcon,
   HeartIcon,
@@ -223,7 +224,7 @@ export function PropertyDetailView({ property, agent }: { property: Property; ag
             <p className="brn" style={{ marginTop: 4 }}>
               RERA BRN <b>{agent.brn}</b> —{" "}
               <a
-                href="https://dubailand.gov.ae/en/"
+                href={RERA_BROKERS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: "var(--primary)", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: "2px" }}
