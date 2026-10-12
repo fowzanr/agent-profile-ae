@@ -11,9 +11,13 @@ import {
   CalendarIcon,
   CheckIcon,
   LinkIcon,
-  StarIcon,
   TrendingUpIcon,
   BuildingIcon,
+  YouTubeIcon,
+  InstagramIcon,
+  LinkedInIcon,
+  TikTokIcon,
+  GlobeIcon,
   MenuIcon,
   CloseIcon,
   ChevronDownIcon,
@@ -25,25 +29,37 @@ const FEATURES = [
     icon: LinkIcon,
     tone: "primary" as const,
     title: "One link for everywhere",
-    body: "Put it on WhatsApp, Instagram, and your business card — one link instead of a scattered handful.",
+    body: "Your Instagram, TikTok, LinkedIn, YouTube, and website in one place — plus a QR code for business cards and signage.",
   },
   {
     icon: CheckIcon,
     tone: "gold" as const,
     title: "Built-in credibility",
-    body: "Your RERA BRN, DED license, and client testimonials, all in one place clients can verify.",
+    body: "Your RERA BRN, DED license, track record, and client testimonials — with a one-tap link to verify you on RERA.",
   },
   {
     icon: WhatsAppIcon,
     tone: "accent3" as const,
     title: "Contact in one tap",
-    body: "WhatsApp, call, email, or book a viewing — clients reach you however they prefer.",
+    body: "WhatsApp, call, or email — clients reach you however they prefer, straight from your page.",
+  },
+  {
+    icon: CalendarIcon,
+    tone: "primary" as const,
+    title: "Viewings booked your way",
+    body: "Clients pick a time within the days and hours you set, and requests land in your inbox. Prefer Calendly? Link that instead.",
+  },
+  {
+    icon: YouTubeIcon,
+    tone: "gold" as const,
+    title: "Show your best content",
+    body: "Pin a property tour or market update. Videos and podcasts play right on your page; courses and communities get their own cards.",
   },
   {
     icon: TrendingUpIcon,
-    tone: "primary" as const,
+    tone: "accent3" as const,
     title: "Know what's working",
-    body: "See profile views, leads, and conversion rate from your dashboard — no spreadsheets.",
+    body: "See profile views, taps on WhatsApp, call, and book, and your conversion rate — right from your dashboard.",
   },
 ];
 
@@ -67,12 +83,12 @@ const STEPS = [
   {
     label: "Step 2",
     title: "Build your profile",
-    body: "Add your license details, a photo, your bio, and where clients can find you.",
+    body: "Add your license details, a photo and cover, a short bio, your socials, and how clients can book you.",
     mockup: (
       <div className="mini-profile">
-        <div className="avatar-sm">AF</div>
+        <div className="avatar-sm">YN</div>
         <div className="mini-profile-info">
-          <div className="mini-profile-name">Ahmed Al Falasi</div>
+          <div className="mini-profile-name">Your Name</div>
           <div className="mini-profile-role">Real Estate Agent</div>
         </div>
       </div>
@@ -114,6 +130,14 @@ const FAQS = [
   {
     q: "What happens right after I sign up?",
     a: "You'll build out your profile — photo, bio, contact details — then submit it for review. Our team checks your license, and your page goes live once it's approved.",
+  },
+  {
+    q: "How do clients book a viewing with me?",
+    a: "They tap Book on your page and pick a time from the days and hours you've set — the request is emailed to you to confirm. If you already use Calendly or a similar tool, you can point the Book button there instead.",
+  },
+  {
+    q: "What can I put on my profile?",
+    a: "Your photo and a cover image, a short bio, your RERA and DED details, sales and rental numbers, specialities, areas, and languages, client testimonials, your social links and website, and featured content like a pinned YouTube video, your podcast, a course, or your community.",
   },
   {
     q: "Can I change my link later?",
@@ -220,6 +244,18 @@ export default function Home() {
     router.push(`/signup?${params.toString()}`);
   }
 
+  // The hero preview is an example built from whatever the visitor types, not a real agent.
+  const typedName = name.trim().replace(/\s+/g, " ");
+  const previewName = typedName.length > 28 ? `${typedName.slice(0, 27).trimEnd()}…` : typedName || "Your Name";
+  const previewInitials =
+    previewName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase())
+      .join("") || "YN";
+  const previewSlug = slugify(name.trim()) || "yourname";
+
   return (
     <div className="land-page">
       <header className="land-nav" ref={navRef}>
@@ -266,8 +302,8 @@ export default function Home() {
               <span className="land-accent">One link.</span>
             </h1>
             <p>
-              One shareable page for your profile, your listings, and your track record — the link you put on
-              WhatsApp, Instagram, and your business card instead of a scattered handful of them.
+              One shareable page for your credentials, your track record, and every way to reach you — the link you
+              put on WhatsApp, Instagram, and your business card instead of a scattered handful of them.
             </p>
 
             <form className="land-claim" onSubmit={claimProfile}>
@@ -298,27 +334,63 @@ export default function Home() {
                 <span className="browser-dot dot-g" />
                 <span className="browser-url">
                   <LinkIcon className="w-3 h-3" />
-                  agentprofile.ae/ahmed
+                  agentprofile.ae/{previewSlug}
                 </span>
               </div>
               <div className="browser-body">
                 <div className="card profile land-mockup-card">
-                  <div className="id-row">
-                    <div className="avatar-wrap">
-                      <div className="avatar">AF</div>
-                      <div className="verified-badge">
-                        <CheckIcon className="w-[13px] h-[13px]" />
+                  <div className="profile-hero">
+                    <span className="land-mockup-example">Example</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/seed/ahmed-cover.svg" alt="" className="profile-hero-img" />
+                    <div className="profile-hero-id">
+                      <div className="avatar-wrap">
+                        <div className="avatar">{previewInitials}</div>
+                        <div className="verified-badge">
+                          <CheckIcon className="w-[13px] h-[13px]" />
+                        </div>
                       </div>
-                    </div>
-                    <div className="id-main">
-                      <div className="id-name-row">
-                        <div className="mockup-name">Ahmed Al Falasi</div>
+                      <div className="id-main">
+                        <div className="mockup-name">{previewName}</div>
+                        <p className="role-line">Real Estate Agent</p>
+                        <p className="agency">Your Agency</p>
                       </div>
-                      <p className="role-line">Luxury &amp; Off-Plan Specialist</p>
-                      <p className="agency">Vantage Real Estate</p>
                     </div>
                   </div>
-
+                  <div className="stat-strip">
+                    <div className="stat-item">
+                      <span className="stat-value">12</span>
+                      <span className="stat-label">Sales</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-value">7</span>
+                      <span className="stat-label">Rentals</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-value">8</span>
+                      <span className="stat-label">Years</span>
+                    </div>
+                  </div>
+                  <div className="profile-divider" aria-hidden="true">
+                    <span className="profile-divider-dot" />
+                  </div>
+                  <div className="profile-socials land-mockup-socials" aria-hidden="true">
+                    <span className="social-plain">
+                      <InstagramIcon className="w-[16px] h-[16px]" />
+                    </span>
+                    <span className="social-plain">
+                      <LinkedInIcon className="w-[16px] h-[16px]" />
+                    </span>
+                    <span className="social-plain">
+                      <TikTokIcon className="w-[16px] h-[16px]" />
+                    </span>
+                    <span className="social-plain">
+                      <YouTubeIcon className="w-[16px] h-[16px]" />
+                    </span>
+                    <span className="social-plain">
+                      <GlobeIcon className="w-[16px] h-[16px]" />
+                    </span>
+                  </div>
                   <div className="cta-primary land-mockup-static">
                     <WhatsAppIcon className="w-4 h-4" />
                     WhatsApp Now
@@ -335,19 +407,6 @@ export default function Home() {
                     <div className="cta-tile">
                       <CalendarIcon className="w-[15px] h-[15px]" />
                       Book
-                    </div>
-                  </div>
-
-                  <div className="stat-chips">
-                    <div className="stat-chip tone-primary">
-                      <BuildingIcon className="w-3.5 h-3.5" />
-                      <span className="stat-chip-value">0</span>
-                      <span className="stat-chip-label">Total Sales</span>
-                    </div>
-                    <div className="stat-chip tone-accent3">
-                      <StarIcon className="w-3.5 h-3.5" />
-                      <span className="stat-chip-value">8</span>
-                      <span className="stat-chip-label">Experience</span>
                     </div>
                   </div>
                 </div>
@@ -425,7 +484,7 @@ export default function Home() {
                 </div>
                 <div>
                   <div className="land-trust-card-label">RERA BRN</div>
-                  <div className="land-trust-card-value">41527</div>
+                  <div className="land-trust-card-value">Your BRN</div>
                 </div>
                 <span className="land-trust-pill pending">Checking</span>
               </div>
@@ -435,7 +494,7 @@ export default function Home() {
                 </div>
                 <div>
                   <div className="land-trust-card-label">DED license</div>
-                  <div className="land-trust-card-value">Vantage Real Estate</div>
+                  <div className="land-trust-card-value">Your agency</div>
                 </div>
                 <span className="land-trust-pill done">
                   <CheckIcon className="w-3 h-3" />
@@ -448,7 +507,7 @@ export default function Home() {
                 </div>
                 <div>
                   <div className="land-trust-card-label">Public profile</div>
-                  <div className="land-trust-card-value">agentprofile.ae/ahmed</div>
+                  <div className="land-trust-card-value">agentprofile.ae/{previewSlug}</div>
                 </div>
                 <span className="land-trust-pill live">
                   <span className="land-trust-pulse" />
