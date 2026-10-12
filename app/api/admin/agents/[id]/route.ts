@@ -34,6 +34,7 @@ const schema = z.object({
   youtubeUrl: z.string().optional(),
   pinterestUrl: z.string().optional(),
   spotifyUrl: z.string().optional(),
+  websiteUrl: z.string().optional(),
   coverUrl: z.string().optional(),
 
   // About

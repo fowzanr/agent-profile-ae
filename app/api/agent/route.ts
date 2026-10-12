@@ -25,6 +25,7 @@ const updateSchema = z.object({
   youtubeUrl: z.string().optional().nullable(),
   pinterestUrl: z.string().optional().nullable(),
   spotifyUrl: z.string().optional().nullable(),
+  websiteUrl: z.string().optional().nullable(),
   bookingMode: z.enum(["form", "link"]).optional(),
   bookingUrl: z.union([z.literal(""), z.string().url("Enter a full booking link, starting with https://")]).optional().nullable(),
   bookingDays: z.string().refine((v) => parseBookingDays(v).length > 0, "Pick at least one day you take bookings").optional(),
@@ -81,6 +82,7 @@ export async function PATCH(req: Request) {
   if (data.youtubeUrl !== undefined) updateData.youtubeUrl = data.youtubeUrl || null;
   if (data.pinterestUrl !== undefined) updateData.pinterestUrl = data.pinterestUrl || null;
   if (data.spotifyUrl !== undefined) updateData.spotifyUrl = data.spotifyUrl || null;
+  if (data.websiteUrl !== undefined) updateData.websiteUrl = data.websiteUrl || null;
   if (data.bookingUrl !== undefined) updateData.bookingUrl = data.bookingUrl || null;
   if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl || null;
   if (data.coverUrl !== undefined) updateData.coverUrl = data.coverUrl || null;

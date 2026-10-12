@@ -13,6 +13,7 @@ import { ComboInput } from "@/components/ComboInput";
 import { SOCIAL_PLATFORMS, hasAnySocial, socialUrlsOf } from "@/lib/socials";
 import { DAY_NAMES, SLOT_LENGTHS, fromMinutes, parseBookingDays, slotTimes } from "@/lib/booking";
 import { SLUG_LOCK_DAYS, formatUnlockDate, slugUnlocksAt } from "@/lib/slugLock";
+import { LINK_KINDS, LINK_KIND_LABELS, detectKind, embedFor, kindOf, type LinkKind } from "@/lib/featuredLinks";
 import { ImageCropper, downscaleImage, uploadImageBlob } from "@/components/ImageCropper";
 import { PropertyForm, emptyPropertyForm, propertyToFormState, type PropertyFormState } from "@/components/PropertyForm";
 import {
@@ -360,6 +361,7 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
   const [links, setLinks] = useState(agent.links);
   const [newLinkLabel, setNewLinkLabel] = useState("");
   const [newLinkUrl, setNewLinkUrl] = useState("");
+  const [newLinkKind, setNewLinkKind] = useState<LinkKind | "">("");
   const [linkError, setLinkError] = useState<string | null>(null);
   const [addingLink, setAddingLink] = useState(false);
   const [profileTab, setProfileTab] = useState<ProfileTab>("identity");
@@ -750,7 +752,7 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
     const res = await fetch("/api/agent-links", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ label: newLinkLabel.trim(), url: newLinkUrl.trim() }),
+      body: JSON.stringify({ label: newLinkLabel.trim(), url: newLinkUrl.trim(), kind: newLinkKind || null }),
     });
     const data = await res.json();
     setAddingLink(false);
@@ -762,6 +764,22 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
     setLinks((prev) => [...prev, data]);
     setNewLinkLabel("");
     setNewLinkUrl("");
+    setNewLinkKind("");
+    refreshPreview();
+  }
+
+  async function updateLink(id: string, patch: { pinned?: boolean; kind?: LinkKind | null }) {
+    setLinks((prev) =>
+      prev.map((l) =>
+        l.id === id ? { ...l, ...patch } : patch.pinned ? { ...l, pinned: false } : l,
+      ),
+    );
+    const res = await fetch(`/api/agent-links/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    if (!res.ok) setLinkError("Couldn't update that link. Refresh and try again.");
     refreshPreview();
   }
 
@@ -1470,22 +1488,60 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
                     <div className="sub-block-head">
                       <LinkIcon className="w-3.5 h-3.5" />
                       <div>
-                        <div className="sub-block-title">Anything else</div>
-                        <div className="sub-block-sub">Your website, YouTube, a listings page — any link at all.</div>
+                        <div className="sub-block-title">Featured &amp; links</div>
+                        <div className="sub-block-sub">
+                          Pin a YouTube video, add your podcast, a course, or a community. Videos and podcasts play right on your
+                          profile.
+                        </div>
                       </div>
                     </div>
 
                     {links.length > 0 && (
                       <div className="link-list" style={{ marginBottom: 12 }}>
-                        {links.map((l) => (
-                          <div className="link-row" key={l.id}>
-                            <span className="link-row-label">{l.label}</span>
-                            <span className="link-row-url">{l.url}</span>
-                            <button type="button" className="btn-ghost-sm" onClick={() => removeLink(l.id)}>
-                              Remove
-                            </button>
-                          </div>
-                        ))}
+                        {[...links]
+                          .sort((a, b) => Number(b.pinned) - Number(a.pinned) || a.order - b.order)
+                          .map((l) => {
+                            const kind = kindOf(l);
+                            return (
+                              <div className={`link-row featured-row${l.pinned ? " pinned" : ""}`} key={l.id}>
+                                <div className="featured-row-main">
+                                  <span className="link-row-label">
+                                    {l.pinned && <span className="feat-pin">Pinned</span>}
+                                    {l.label}
+                                  </span>
+                                  <span className="link-row-url">
+                                    {embedFor(l.url) ? "Plays on your profile · " : ""}
+                                    {l.url}
+                                  </span>
+                                </div>
+                                <div className="featured-row-actions">
+                                  <select
+                                    className="featured-kind-select"
+                                    value={kind}
+                                    aria-label={`Type for ${l.label}`}
+                                    onChange={(e) => updateLink(l.id, { kind: e.target.value as LinkKind })}
+                                  >
+                                    {LINK_KINDS.map((k) => (
+                                      <option key={k} value={k}>
+                                        {LINK_KIND_LABELS[k]}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    type="button"
+                                    className={`btn-ghost-sm${l.pinned ? " active" : ""}`}
+                                    aria-pressed={l.pinned}
+                                    onClick={() => updateLink(l.id, { pinned: !l.pinned })}
+                                  >
+                                    {l.pinned ? "Unpin" : "Pin"}
+                                  </button>
+                                  <button type="button" className="btn-ghost-sm" onClick={() => removeLink(l.id)}>
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
                       </div>
                     )}
 
@@ -1499,14 +1555,29 @@ export function DashboardView({ agent }: { agent: AgentWithProperties }) {
                       <input
                         value={newLinkLabel}
                         onChange={(e) => setNewLinkLabel(e.target.value)}
-                        placeholder="Label, e.g. Website"
+                        placeholder="Label, e.g. My market update video"
                       />
                       <input
                         value={newLinkUrl}
                         onChange={(e) => setNewLinkUrl(e.target.value)}
-                        placeholder="https://"
+                        placeholder="https://youtube.com/…, open.spotify.com/…, or any link"
                         type="url"
                       />
+                      <select
+                        className="featured-kind-select"
+                        value={newLinkKind}
+                        aria-label="Link type"
+                        onChange={(e) => setNewLinkKind(e.target.value as LinkKind | "")}
+                      >
+                        <option value="">
+                          {newLinkUrl.trim() ? `Auto: ${LINK_KIND_LABELS[detectKind(newLinkUrl.trim())]}` : "Auto-detect type"}
+                        </option>
+                        {LINK_KINDS.map((k) => (
+                          <option key={k} value={k}>
+                            {LINK_KIND_LABELS[k]}
+                          </option>
+                        ))}
+                      </select>
                       <button
                         type="button"
                         className="btn-secondary"

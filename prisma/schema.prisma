@@ -45,6 +45,7 @@ model Agent {
   youtubeUrl     String?
   pinterestUrl   String?
   spotifyUrl     String?
+  websiteUrl     String?
   bookingMode    String   @default("form") // "form" (requests emailed to the agent) | "link" (opens bookingUrl)
   bookingUrl     String?
   bookingDays        String @default("1,2,3,4,5,6") // weekdays the agent takes bookings, 0 = Sunday … 6 = Saturday
@@ -81,6 +82,8 @@ model AgentLink {
   agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
   label     String
   url       String
+  kind      String?  // "video" | "audio" | "course" | "community" | "website"; null = detect from the URL
+  pinned    Boolean  @default(false) // shown first and larger on the profile; at most one per agent
   order     Int      @default(0)
   createdAt DateTime @default(now())
 }

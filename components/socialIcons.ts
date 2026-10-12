@@ -1,6 +1,7 @@
 import type { SocialKey } from "@/lib/socials";
 import {
   FacebookIcon,
+  GlobeIcon,
   InstagramIcon,
   LinkedInIcon,
   PinterestIcon,
@@ -17,4 +18,5 @@ export const SOCIAL_ICONS: Record<SocialKey, typeof InstagramIcon> = {
   youtube: YouTubeIcon,
   pinterest: PinterestIcon,
   spotify: SpotifyIcon,
+  website: GlobeIcon,
 };
