@@ -11,9 +11,13 @@ import {
   CalendarIcon,
   CheckIcon,
   LinkIcon,
-  StarIcon,
   TrendingUpIcon,
   BuildingIcon,
+  YouTubeIcon,
+  InstagramIcon,
+  LinkedInIcon,
+  TikTokIcon,
+  GlobeIcon,
   MenuIcon,
   CloseIcon,
   ChevronDownIcon,
@@ -25,25 +29,37 @@ const FEATURES = [
     icon: LinkIcon,
     tone: "primary" as const,
     title: "One link for everywhere",
-    body: "Put it on WhatsApp, Instagram, and your business card — one link instead of a scattered handful.",
+    body: "Your Instagram, TikTok, LinkedIn, YouTube, and website in one place — plus a QR code for business cards and signage.",
   },
   {
     icon: CheckIcon,
     tone: "gold" as const,
     title: "Built-in credibility",
-    body: "Your RERA BRN, DED license, and client testimonials, all in one place clients can verify.",
+    body: "Your RERA BRN, DED license, track record, and client testimonials — with a one-tap link to verify you on RERA.",
   },
   {
     icon: WhatsAppIcon,
     tone: "accent3" as const,
     title: "Contact in one tap",
-    body: "WhatsApp, call, email, or book a viewing — clients reach you however they prefer.",
+    body: "WhatsApp, call, or email — clients reach you however they prefer, straight from your page.",
+  },
+  {
+    icon: CalendarIcon,
+    tone: "primary" as const,
+    title: "Viewings booked your way",
+    body: "Clients pick a time within the days and hours you set, and requests land in your inbox. Prefer Calendly? Link that instead.",
+  },
+  {
+    icon: YouTubeIcon,
+    tone: "gold" as const,
+    title: "Show your best content",
+    body: "Pin a property tour or market update. Videos and podcasts play right on your page; courses and communities get their own cards.",
   },
   {
     icon: TrendingUpIcon,
-    tone: "primary" as const,
+    tone: "accent3" as const,
     title: "Know what's working",
-    body: "See profile views, leads, and conversion rate from your dashboard — no spreadsheets.",
+    body: "See profile views, taps on WhatsApp, call, and book, and your conversion rate — right from your dashboard.",
   },
 ];
 
@@ -67,7 +83,7 @@ const STEPS = [
   {
     label: "Step 2",
     title: "Build your profile",
-    body: "Add your license details, a photo, your bio, and where clients can find you.",
+    body: "Add your license details, a photo and cover, a short bio, your socials, and how clients can book you.",
     mockup: (
       <div className="mini-profile">
         <div className="avatar-sm">AF</div>
@@ -114,6 +130,14 @@ const FAQS = [
   {
     q: "What happens right after I sign up?",
     a: "You'll build out your profile — photo, bio, contact details — then submit it for review. Our team checks your license, and your page goes live once it's approved.",
+  },
+  {
+    q: "How do clients book a viewing with me?",
+    a: "They tap Book on your page and pick a time from the days and hours you've set — the request is emailed to you to confirm. If you already use Calendly or a similar tool, you can point the Book button there instead.",
+  },
+  {
+    q: "What can I put on my profile?",
+    a: "Your photo and a cover image, a short bio, your RERA and DED details, sales and rental numbers, specialities, areas, and languages, client testimonials, your social links and website, and featured content like a pinned YouTube video, your podcast, a course, or your community.",
   },
   {
     q: "Can I change my link later?",
@@ -266,8 +290,8 @@ export default function Home() {
               <span className="land-accent">One link.</span>
             </h1>
             <p>
-              One shareable page for your profile, your listings, and your track record — the link you put on
-              WhatsApp, Instagram, and your business card instead of a scattered handful of them.
+              One shareable page for your credentials, your track record, and every way to reach you — the link you
+              put on WhatsApp, Instagram, and your business card instead of a scattered handful of them.
             </p>
 
             <form className="land-claim" onSubmit={claimProfile}>
@@ -338,17 +362,36 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="stat-chips">
-                    <div className="stat-chip tone-primary">
-                      <BuildingIcon className="w-3.5 h-3.5" />
-                      <span className="stat-chip-value">0</span>
-                      <span className="stat-chip-label">Total Sales</span>
+                  <div className="stat-strip land-mockup-stats">
+                    <div className="stat-item">
+                      <span className="stat-value">12</span>
+                      <span className="stat-label">Sales</span>
                     </div>
-                    <div className="stat-chip tone-accent3">
-                      <StarIcon className="w-3.5 h-3.5" />
-                      <span className="stat-chip-value">8</span>
-                      <span className="stat-chip-label">Experience</span>
+                    <div className="stat-item">
+                      <span className="stat-value">7</span>
+                      <span className="stat-label">Rentals</span>
                     </div>
+                    <div className="stat-item">
+                      <span className="stat-value">8</span>
+                      <span className="stat-label">Years</span>
+                    </div>
+                  </div>
+                  <div className="profile-socials land-mockup-socials" aria-hidden="true">
+                    <span className="social-plain">
+                      <InstagramIcon className="w-[16px] h-[16px]" />
+                    </span>
+                    <span className="social-plain">
+                      <LinkedInIcon className="w-[16px] h-[16px]" />
+                    </span>
+                    <span className="social-plain">
+                      <TikTokIcon className="w-[16px] h-[16px]" />
+                    </span>
+                    <span className="social-plain">
+                      <YouTubeIcon className="w-[16px] h-[16px]" />
+                    </span>
+                    <span className="social-plain">
+                      <GlobeIcon className="w-[16px] h-[16px]" />
+                    </span>
                   </div>
                 </div>
               </div>
