@@ -1,10 +1,32 @@
+import { randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
+
+// SEED_MODE=production-demo seeds ahmed for a live database: hidden (not approved),
+// obviously fake contact details, and a random password printed once.
+const productionDemo = process.env.SEED_MODE === "production-demo";
+const demo = productionDemo
+  ? {
+      email: "ahmed@example.com",
+      phone: "971500000000",
+      brn: "000000",
+      password: randomBytes(12).toString("base64url"),
+      social: (url: string) => new URL(url).origin,
+      leadPhone: (n: string) => n.replace(/\d(?=\d{0,3}$)/g, "0"),
+    }
+  : {
+      email: "ahmed@vantage.ae",
+      phone: "971501234567",
+      brn: "41527",
+      password: "password123",
+      social: (url: string) => url,
+      leadPhone: (n: string) => n,
+    };
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const passwordHash = await bcrypt.hash("password123", 10);
+  const passwordHash = await bcrypt.hash(demo.password, 10);
   const now = new Date();
 
   await prisma.agent.deleteMany({ where: { slug: "ahmed" } });
@@ -12,7 +34,7 @@ async function main() {
   const ahmed = await prisma.agent.create({
     data: {
       slug: "ahmed",
-      email: "ahmed@vantage.ae",
+      email: demo.email,
       passwordHash,
       emailVerifiedAt: now,
       name: "Ahmed Al Falasi",
@@ -23,40 +45,40 @@ async function main() {
       coverUrl: "/seed/ahmed-cover.svg",
       coverSourceUrl: "/seed/ahmed-cover.svg",
       accountType: "agent",
-      brn: "41527",
+      brn: demo.brn,
       dedLicensed: true,
       role: "Luxury & Off-Plan Specialist",
       bio: "Luxury & off-plan specialist at Vantage Real Estate\nPalm Jumeirah · Dubai Marina · Business Bay\nSame-day replies · Arabic, English, Hindi",
       yearsExperience: 8,
-      whatsapp: "971501234567",
-      phone: "971501234567",
-      contactEmail: "ahmed@vantage.ae",
-      instagramUrl: "https://instagram.com/ahmed.vantage",
-      facebookUrl: "https://facebook.com/ahmed.vantage",
-      linkedinUrl: "https://linkedin.com/in/ahmed-al-falasi",
-      tiktokUrl: "https://tiktok.com/@ahmed.vantage",
-      youtubeUrl: "https://youtube.com/@ahmedvantage",
-      pinterestUrl: "https://pinterest.com/ahmedvantage",
+      whatsapp: demo.phone,
+      phone: demo.phone,
+      contactEmail: demo.email,
+      instagramUrl: demo.social("https://instagram.com/ahmed.vantage"),
+      facebookUrl: demo.social("https://facebook.com/ahmed.vantage"),
+      linkedinUrl: demo.social("https://linkedin.com/in/ahmed-al-falasi"),
+      tiktokUrl: demo.social("https://tiktok.com/@ahmed.vantage"),
+      youtubeUrl: demo.social("https://youtube.com/@ahmedvantage"),
+      pinterestUrl: demo.social("https://pinterest.com/ahmedvantage"),
       bookingMode: "form",
-      spotifyUrl: "https://open.spotify.com/show/dubai-property-talk",
+      spotifyUrl: demo.social("https://open.spotify.com/show/dubai-property-talk"),
       specialities: "Residential Sales, Off-Plan Sales, Luxury Leasing, Investment Advisory",
       areas: "Palm Jumeirah, Dubai Marina, Business Bay, Downtown Dubai, JVC",
       languages: "Arabic, English, Hindi",
       onboarded: true,
       isPro: true,
-      submittedForReview: true,
-      isApproved: true,
-      brnVerifiedAt: now,
-      socialVerifiedAt: now,
-      isVerified: true,
+      submittedForReview: !productionDemo,
+      isApproved: !productionDemo,
+      brnVerifiedAt: productionDemo ? null : now,
+      socialVerifiedAt: productionDemo ? null : now,
+      isVerified: !productionDemo,
       availabilityStatus: "available",
       manualForSaleCount: 12,
       manualForRentCount: 7,
       transactedVolume: 45500000,
       links: {
         create: [
-          { label: "Vantage Real Estate", url: "https://vantage.ae", order: 0 },
-          { label: "Book a valuation", url: "https://calendly.com/ahmed-vantage", order: 1 },
+          { label: "Vantage Real Estate", url: productionDemo ? "https://example.com" : "https://vantage.ae", order: 0 },
+          { label: "Book a valuation", url: demo.social("https://calendly.com/ahmed-vantage"), order: 1 },
         ],
       },
       properties: {
@@ -249,9 +271,9 @@ async function main() {
   const daysAgo = (d: number) => new Date(now.getTime() - d * 24 * 60 * 60 * 1000);
   await prisma.lead.createMany({
     data: [
-      { agentId: ahmed.id, propertyId: listings[0]?.id, name: "Sara Khan", contact: "+971 55 123 4567", message: "Is the Frond D villa still available for a viewing this weekend?", channel: "whatsapp", createdAt: daysAgo(1) },
+      { agentId: ahmed.id, propertyId: listings[0]?.id, name: "Sara Khan", contact: demo.leadPhone("+971 55 123 4567"), message: "Is the Frond D villa still available for a viewing this weekend?", channel: "whatsapp", createdAt: daysAgo(1) },
       { agentId: ahmed.id, name: "James Porter", contact: "james.porter@example.com", message: "Looking for a 2-bed in Dubai Marina, budget AED 2.5M.", channel: "form", createdAt: daysAgo(3) },
-      { agentId: ahmed.id, propertyId: listings[1]?.id, name: "Layla Haddad", contact: "+971 50 987 6543", channel: "call", createdAt: daysAgo(6) },
+      { agentId: ahmed.id, propertyId: listings[1]?.id, name: "Layla Haddad", contact: demo.leadPhone("+971 50 987 6543"), channel: "call", createdAt: daysAgo(6) },
     ],
   });
   const eventTypes = ["profile_view", "profile_view", "profile_view", "whatsapp_click", "call_click", "email_click", "book_click", "share"];
@@ -264,7 +286,8 @@ async function main() {
   });
 
   console.log(`Seeded agent: ${ahmed.name} (/${ahmed.slug})`);
-  console.log("Login: ahmed@vantage.ae / password123");
+  console.log(`Login: ${demo.email} / ${demo.password}`);
+  if (productionDemo) console.log("Hidden demo: not approved, so /ahmed is visible only to this login and admins.");
 }
 
 main()
