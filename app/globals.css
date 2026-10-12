@@ -1272,19 +1272,27 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
 }
 .browser-url svg { flex-shrink: 0; }
 .browser-body {
-  position: relative; background: var(--bg); padding: 26px 22px 30px; max-height: 520px; overflow: hidden;
+  position: relative; background: var(--bg); padding: 26px 22px 30px; max-height: 600px; overflow: hidden;
 }
 .browser-body::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 100px;
   background: linear-gradient(to bottom, transparent, var(--bg) 72%); pointer-events: none;
 }
-.land-mockup-card { pointer-events: none; box-shadow: none; }
+/* Hero mockup: a compact copy of the real profile card (same classes as ProfileView). */
+.land-mockup-card { pointer-events: none; box-shadow: none; gap: 14px; }
+.land-mockup-card .profile-hero { --hero-img-h: 120px; padding-bottom: 18px; }
+.land-mockup-card .profile-hero .avatar { width: 62px; height: 62px; }
+.land-mockup-card .profile-hero .id-main h1,
+.land-mockup-card .mockup-name { font-family: var(--font-jakarta), sans-serif; font-weight: 800; font-size: 19px; line-height: 1.2; letter-spacing: -.01em; color: #fff; }
+.land-mockup-card .role-line { font-size: 12.5px; }
+.land-mockup-card .agency { font-size: 12.5px; }
 .land-mockup-card .stat-strip { display: flex; flex-wrap: nowrap; }
-.land-mockup-card .stat-item { padding: 0 12px; }
+.land-mockup-card .stat-item { padding: 0 10px; gap: 4px; }
+.land-mockup-card .stat-value { font-size: 14px; }
+.land-mockup-card .stat-label { font-size: 9px; letter-spacing: .05em; }
 .land-mockup-card .stat-item:first-child { padding-left: 0; }
 .land-mockup-card .stat-item + .stat-item { border-left: 1px solid var(--border); }
 .land-mockup-socials { margin-top: 0; gap: 14px; }
-.mockup-name { font-family: var(--font-jakarta), sans-serif; font-weight: 800; font-size: 19px; margin: 0; letter-spacing: -.01em; }
 .land-mockup-static { cursor: default; }
 
 .land-float-card {
@@ -1315,7 +1323,7 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
   .land-mockup-blob.blob-a { width: 180px; height: 180px; margin-left: -190px; }
   .land-mockup-blob.blob-b { width: 150px; height: 150px; margin-left: 100px; }
   .browser-mockup { transform: none; }
-  .browser-body { max-height: 420px; padding: 22px 18px 26px; }
+  .browser-body { max-height: 520px; padding: 22px 18px 26px; }
   .land-float-card { transform: rotate(2deg); max-width: 160px; }
   .land-float-badge { transform: rotate(-2deg); }
 }

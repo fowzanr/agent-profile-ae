@@ -327,42 +327,25 @@ export default function Home() {
               </div>
               <div className="browser-body">
                 <div className="card profile land-mockup-card">
-                  <div className="id-row">
-                    <div className="avatar-wrap">
-                      <div className="avatar">AF</div>
-                      <div className="verified-badge">
-                        <CheckIcon className="w-[13px] h-[13px]" />
+                  <div className="profile-hero">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/seed/ahmed-cover.svg" alt="" className="profile-hero-img" />
+                    <div className="profile-hero-id">
+                      <div className="avatar-wrap">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/seed/ahmed-photo.svg" alt="" className="avatar avatar-photo" />
+                        <div className="verified-badge">
+                          <CheckIcon className="w-[13px] h-[13px]" />
+                        </div>
                       </div>
-                    </div>
-                    <div className="id-main">
-                      <div className="id-name-row">
+                      <div className="id-main">
                         <div className="mockup-name">Ahmed Al Falasi</div>
+                        <p className="role-line">Luxury &amp; Off-Plan Specialist</p>
+                        <p className="agency">Vantage Real Estate</p>
                       </div>
-                      <p className="role-line">Luxury &amp; Off-Plan Specialist</p>
-                      <p className="agency">Vantage Real Estate</p>
                     </div>
                   </div>
-
-                  <div className="cta-primary land-mockup-static">
-                    <WhatsAppIcon className="w-4 h-4" />
-                    WhatsApp Now
-                  </div>
-                  <div className="cta-row three-col">
-                    <div className="cta-tile">
-                      <PhoneIcon className="w-[15px] h-[15px]" />
-                      Call
-                    </div>
-                    <div className="cta-tile">
-                      <MailIcon className="w-[15px] h-[15px]" />
-                      Email
-                    </div>
-                    <div className="cta-tile">
-                      <CalendarIcon className="w-[15px] h-[15px]" />
-                      Book
-                    </div>
-                  </div>
-
-                  <div className="stat-strip land-mockup-stats">
+                  <div className="stat-strip">
                     <div className="stat-item">
                       <span className="stat-value">12</span>
                       <span className="stat-label">Sales</span>
@@ -375,6 +358,9 @@ export default function Home() {
                       <span className="stat-value">8</span>
                       <span className="stat-label">Years</span>
                     </div>
+                  </div>
+                  <div className="profile-divider" aria-hidden="true">
+                    <span className="profile-divider-dot" />
                   </div>
                   <div className="profile-socials land-mockup-socials" aria-hidden="true">
                     <span className="social-plain">
@@ -392,6 +378,24 @@ export default function Home() {
                     <span className="social-plain">
                       <GlobeIcon className="w-[16px] h-[16px]" />
                     </span>
+                  </div>
+                  <div className="cta-primary land-mockup-static">
+                    <WhatsAppIcon className="w-4 h-4" />
+                    WhatsApp Now
+                  </div>
+                  <div className="cta-row three-col">
+                    <div className="cta-tile">
+                      <PhoneIcon className="w-[15px] h-[15px]" />
+                      Call
+                    </div>
+                    <div className="cta-tile">
+                      <MailIcon className="w-[15px] h-[15px]" />
+                      Email
+                    </div>
+                    <div className="cta-tile">
+                      <CalendarIcon className="w-[15px] h-[15px]" />
+                      Book
+                    </div>
                   </div>
                 </div>
               </div>
