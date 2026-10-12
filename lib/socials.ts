@@ -8,6 +8,7 @@ export const SOCIAL_PLATFORMS = [
   { key: "youtube", field: "youtubeUrl", name: "YouTube", placeholder: "https://youtube.com/@you" },
   { key: "pinterest", field: "pinterestUrl", name: "Pinterest", placeholder: "https://pinterest.com/you" },
   { key: "spotify", field: "spotifyUrl", name: "Spotify", placeholder: "https://open.spotify.com/show/…" },
+  { key: "website", field: "websiteUrl", name: "Website", placeholder: "https://yourwebsite.com" },
 ] as const;
 
 export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number];

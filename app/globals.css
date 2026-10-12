@@ -99,13 +99,13 @@ button { font: inherit; }
 .wordmark b { color: var(--text); }
 
 .social-row-top { display: flex; gap: 8px; }
-.profile-socials { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: -4px; }
+.profile-socials { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: -4px; }
 .social-plain {
   display: inline-flex; align-items: center; justify-content: center; padding: 2px;
   color: var(--text-muted); transition: color 140ms ease, transform 140ms ease;
 }
 .social-plain:hover { color: var(--primary); transform: translateY(-1px); }
-@media (max-width: 360px) { .profile-socials { gap: 14px; } }
+@media (max-width: 360px) { .profile-socials { gap: 10px; } }
 .social-sm {
   width: 32px; height: 32px; border-radius: 9px;
   display: flex; align-items: center; justify-content: center;

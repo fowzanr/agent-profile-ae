@@ -61,6 +61,7 @@ async function main() {
       pinterestUrl: demo.social("https://pinterest.com/ahmedvantage"),
       bookingMode: "form",
       spotifyUrl: demo.social("https://open.spotify.com/show/dubai-property-talk"),
+      websiteUrl: productionDemo ? "https://example.com" : "https://vantage.ae",
       specialities: "Residential Sales, Off-Plan Sales, Luxury Leasing, Investment Advisory",
       areas: "Palm Jumeirah, Dubai Marina, Business Bay, Downtown Dubai, JVC",
       languages: "Arabic, English, Hindi",
