@@ -4,6 +4,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { BRN_PATTERN, SLUG_PATTERN, RESERVED_SLUGS } from "@/lib/validation";
 import { BIO_MAX_LENGTH } from "@/lib/constants";
+import { SLOT_LENGTHS, TIME_PATTERN, parseBookingDays, toMinutes } from "@/lib/booking";
+import { SLUG_LOCK_DAYS, canChangeSlug, formatUnlockDate, slugUnlocksAt } from "@/lib/slugLock";
 
 const updateSchema = z.object({
   name: z.string().min(2).optional(),
@@ -23,6 +25,12 @@ const updateSchema = z.object({
   youtubeUrl: z.string().optional().nullable(),
   pinterestUrl: z.string().optional().nullable(),
   spotifyUrl: z.string().optional().nullable(),
+  bookingMode: z.enum(["form", "link"]).optional(),
+  bookingUrl: z.union([z.literal(""), z.string().url("Enter a full booking link, starting with https://")]).optional().nullable(),
+  bookingDays: z.string().refine((v) => parseBookingDays(v).length > 0, "Pick at least one day you take bookings").optional(),
+  bookingStartTime: z.string().regex(TIME_PATTERN, "Pick a valid start time").optional(),
+  bookingEndTime: z.string().regex(TIME_PATTERN, "Pick a valid end time").optional(),
+  bookingSlotMinutes: z.number().refine((v) => (SLOT_LENGTHS as readonly number[]).includes(v), "Pick a valid appointment length").optional(),
   specialities: z.string().optional(),
   areas: z.string().optional(),
   languages: z.string().optional(),
@@ -58,7 +66,14 @@ export async function PATCH(req: Request) {
   }
 
   const data = parsed.data;
+  if (data.bookingStartTime && data.bookingEndTime) {
+    const minutes = toMinutes(data.bookingEndTime) - toMinutes(data.bookingStartTime);
+    if (minutes < (data.bookingSlotMinutes ?? 30)) {
+      return NextResponse.json({ error: "Your booking hours need to end after they start, with room for at least one appointment" }, { status: 400 });
+    }
+  }
   const updateData: Record<string, unknown> = { ...data };
+  if (data.bookingDays !== undefined) updateData.bookingDays = parseBookingDays(data.bookingDays).join(",");
   if (data.instagramUrl !== undefined) updateData.instagramUrl = data.instagramUrl || null;
   if (data.linkedinUrl !== undefined) updateData.linkedinUrl = data.linkedinUrl || null;
   if (data.tiktokUrl !== undefined) updateData.tiktokUrl = data.tiktokUrl || null;
@@ -66,6 +81,7 @@ export async function PATCH(req: Request) {
   if (data.youtubeUrl !== undefined) updateData.youtubeUrl = data.youtubeUrl || null;
   if (data.pinterestUrl !== undefined) updateData.pinterestUrl = data.pinterestUrl || null;
   if (data.spotifyUrl !== undefined) updateData.spotifyUrl = data.spotifyUrl || null;
+  if (data.bookingUrl !== undefined) updateData.bookingUrl = data.bookingUrl || null;
   if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl || null;
   if (data.coverUrl !== undefined) updateData.coverUrl = data.coverUrl || null;
   if (data.photoSourceUrl !== undefined) updateData.photoSourceUrl = data.photoSourceUrl || null;
@@ -75,7 +91,7 @@ export async function PATCH(req: Request) {
   if (data.slug !== undefined || data.submittedForReview === true) {
     const current = await prisma.agent.findUnique({
       where: { id: session.user.id },
-      select: { slug: true, emailVerifiedAt: true },
+      select: { slug: true, emailVerifiedAt: true, slugChangedAt: true, createdAt: true },
     });
     if (!current) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -86,10 +102,19 @@ export async function PATCH(req: Request) {
         return NextResponse.json({ error: "That URL isn't available" }, { status: 409 });
       }
       if (data.slug !== current.slug) {
+        if (!canChangeSlug(current)) {
+          return NextResponse.json(
+            {
+              error: `Your link can be changed once every ${SLUG_LOCK_DAYS} days. You can change it again on ${formatUnlockDate(slugUnlocksAt(current))}.`,
+            },
+            { status: 429 },
+          );
+        }
         const taken = await prisma.agent.findUnique({ where: { slug: data.slug } });
         if (taken) {
           return NextResponse.json({ error: "That URL is already taken" }, { status: 409 });
         }
+        updateData.slugChangedAt = new Date();
       }
     }
 

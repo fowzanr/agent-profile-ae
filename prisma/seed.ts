@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const passwordHash = await bcrypt.hash("password123", 10);
+  const now = new Date();
 
   await prisma.agent.deleteMany({ where: { slug: "ahmed" } });
 
@@ -13,24 +14,51 @@ async function main() {
       slug: "ahmed",
       email: "ahmed@vantage.ae",
       passwordHash,
+      emailVerifiedAt: now,
       name: "Ahmed Al Falasi",
       agency: "Vantage Real Estate",
       avatarInitials: "AF",
+      photoUrl: "/seed/ahmed-photo.svg",
+      photoSourceUrl: "/seed/ahmed-photo.svg",
+      coverUrl: "/seed/ahmed-cover.svg",
+      coverSourceUrl: "/seed/ahmed-cover.svg",
+      accountType: "agent",
       brn: "41527",
       dedLicensed: true,
       role: "Luxury & Off-Plan Specialist",
-      bio: "Eight years matching discerning buyers with Dubai's most sought-after addresses — from beachfront villas on Palm Jumeirah to off-plan towers in Business Bay. I handle the paperwork and the negotiation, so you can focus on the view. Every client gets a same-day response and a straight answer, even when it isn't the one they were hoping for.",
+      bio: "Luxury & off-plan specialist at Vantage Real Estate\nPalm Jumeirah · Dubai Marina · Business Bay\nSame-day replies · Arabic, English, Hindi",
       yearsExperience: 8,
       whatsapp: "971501234567",
       phone: "971501234567",
       contactEmail: "ahmed@vantage.ae",
-      instagramUrl: "https://instagram.com",
-      linkedinUrl: "https://linkedin.com",
-      tiktokUrl: "https://tiktok.com",
-      facebookUrl: "https://facebook.com",
+      instagramUrl: "https://instagram.com/ahmed.vantage",
+      facebookUrl: "https://facebook.com/ahmed.vantage",
+      linkedinUrl: "https://linkedin.com/in/ahmed-al-falasi",
+      tiktokUrl: "https://tiktok.com/@ahmed.vantage",
+      youtubeUrl: "https://youtube.com/@ahmedvantage",
+      pinterestUrl: "https://pinterest.com/ahmedvantage",
+      bookingMode: "form",
+      spotifyUrl: "https://open.spotify.com/show/dubai-property-talk",
       specialities: "Residential Sales, Off-Plan Sales, Luxury Leasing, Investment Advisory",
-      areas: "Dubai",
+      areas: "Palm Jumeirah, Dubai Marina, Business Bay, Downtown Dubai, JVC",
       languages: "Arabic, English, Hindi",
+      onboarded: true,
+      isPro: true,
+      submittedForReview: true,
+      isApproved: true,
+      brnVerifiedAt: now,
+      socialVerifiedAt: now,
+      isVerified: true,
+      availabilityStatus: "available",
+      manualForSaleCount: 12,
+      manualForRentCount: 7,
+      transactedVolume: 45500000,
+      links: {
+        create: [
+          { label: "Vantage Real Estate", url: "https://vantage.ae", order: 0 },
+          { label: "Book a valuation", url: "https://calendly.com/ahmed-vantage", order: 1 },
+        ],
+      },
       properties: {
         create: [
           {
@@ -214,6 +242,25 @@ async function main() {
         ],
       },
     },
+  });
+
+  // Sample leads and analytics so the dashboard and admin screens have data.
+  const listings = await prisma.property.findMany({ where: { agentId: ahmed.id }, select: { id: true } });
+  const daysAgo = (d: number) => new Date(now.getTime() - d * 24 * 60 * 60 * 1000);
+  await prisma.lead.createMany({
+    data: [
+      { agentId: ahmed.id, propertyId: listings[0]?.id, name: "Sara Khan", contact: "+971 55 123 4567", message: "Is the Frond D villa still available for a viewing this weekend?", channel: "whatsapp", createdAt: daysAgo(1) },
+      { agentId: ahmed.id, name: "James Porter", contact: "james.porter@example.com", message: "Looking for a 2-bed in Dubai Marina, budget AED 2.5M.", channel: "form", createdAt: daysAgo(3) },
+      { agentId: ahmed.id, propertyId: listings[1]?.id, name: "Layla Haddad", contact: "+971 50 987 6543", channel: "call", createdAt: daysAgo(6) },
+    ],
+  });
+  const eventTypes = ["profile_view", "profile_view", "profile_view", "whatsapp_click", "call_click", "email_click", "book_click", "share"];
+  await prisma.analyticsEvent.createMany({
+    data: Array.from({ length: 120 }, (_, i) => ({
+      agentId: ahmed.id,
+      type: eventTypes[i % eventTypes.length],
+      createdAt: daysAgo((i * 7) % 30),
+    })),
   });
 
   console.log(`Seeded agent: ${ahmed.name} (/${ahmed.slug})`);

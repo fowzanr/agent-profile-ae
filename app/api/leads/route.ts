@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { getClientIp, rateLimit, rateLimitResponse } from "@/lib/rateLimit";
+import { TIME_PATTERN, availabilityOf, formatBookingTime, isBookable } from "@/lib/booking";
 
 const createSchema = z.object({
   agentId: z.string().min(1),
@@ -12,6 +13,8 @@ const createSchema = z.object({
   contact: z.string().min(1).max(200),
   message: z.string().max(2000).optional(),
   channel: z.enum(["form", "book"]).optional(),
+  preferredDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a valid date").optional(),
+  preferredTime: z.string().regex(TIME_PATTERN, "Pick a valid time").optional(),
 });
 
 export async function POST(req: Request) {
@@ -26,11 +29,24 @@ export async function POST(req: Request) {
 
   const agent = await prisma.agent.findUnique({
     where: { id: parsed.data.agentId },
-    select: { contactEmail: true },
+    select: { contactEmail: true, email: true, bookingDays: true, bookingStartTime: true, bookingEndTime: true, bookingSlotMinutes: true },
   });
   if (!agent) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+
+  const isBooking = parsed.data.channel === "book";
+  const { preferredDate, preferredTime } = parsed.data;
+  if (isBooking) {
+    if (!preferredDate || !preferredTime) {
+      return NextResponse.json({ error: "Pick a day and time for your viewing" }, { status: 400 });
+    }
+    if (!isBookable(availabilityOf(agent), preferredDate, preferredTime)) {
+      return NextResponse.json({ error: "That time isn't available any more. Pick another slot." }, { status: 400 });
+    }
+  }
+  const when = preferredDate && preferredTime ? formatBookingTime(preferredDate, preferredTime) : "";
+  const message = [when ? `Preferred time: ${when}` : null, parsed.data.message || null].filter(Boolean).join("\n\n");
 
   const lead = await prisma.lead.create({
     data: {
@@ -38,22 +54,26 @@ export async function POST(req: Request) {
       propertyId: parsed.data.propertyId || null,
       name: parsed.data.name,
       contact: parsed.data.contact,
-      message: parsed.data.message || null,
+      message: message || null,
       channel: parsed.data.channel ?? "form",
     },
   });
 
-  if (agent.contactEmail) {
-    const kind = parsed.data.channel === "book" ? "booking request" : "message";
+  const notifyEmail = agent.contactEmail || agent.email;
+  if (notifyEmail) {
+    const kind = isBooking ? "booking request" : "message";
     await sendEmail({
-      to: agent.contactEmail,
+      to: notifyEmail,
       subject: `New ${kind} from ${parsed.data.name} — agentprofile.ae`,
       text: [
         `You have a new ${kind} on your agentprofile.ae page.`,
         "",
         `Name: ${parsed.data.name}`,
         `Contact: ${parsed.data.contact}`,
+        when ? `Preferred time: ${when}` : "",
         parsed.data.message ? `\nMessage:\n${parsed.data.message}` : "",
+        "",
+        isBooking ? "Reply to them directly to confirm the viewing." : "",
       ].join("\n"),
     }).catch(() => {});
   }
