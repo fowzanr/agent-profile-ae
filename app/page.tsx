@@ -245,7 +245,8 @@ export default function Home() {
   }
 
   // The hero preview is an example built from whatever the visitor types, not a real agent.
-  const previewName = name.trim().replace(/\s+/g, " ").slice(0, 28) || "Your Name";
+  const typedName = name.trim().replace(/\s+/g, " ");
+  const previewName = typedName.length > 28 ? `${typedName.slice(0, 27).trimEnd()}…` : typedName || "Your Name";
   const previewInitials =
     previewName
       .split(" ")
