@@ -305,6 +305,14 @@ export function GlobeIcon({ className }: { className?: string }) {
   );
 }
 
+export function FlagIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 21V4M5 4h11l-1.5 4L16 12H5" />
+    </svg>
+  );
+}
+
 export function BriefcaseIcon({ className }: { className?: string }) {
   return (
     <svg

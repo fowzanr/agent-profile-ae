@@ -8,7 +8,7 @@ import { PropertyDetailView } from "@/components/PropertyDetailView";
 async function getData(slug: string, propertyId: string) {
   const property = await prisma.property.findUnique({
     where: { id: propertyId },
-    include: { agent: true },
+    include: { agent: { omit: { email: true } } },
   });
   if (!property || property.agent.slug !== slug) return null;
   return property;

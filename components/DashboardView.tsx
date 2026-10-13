@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import type { Agent, AgentLink, Property, Testimonial } from "@prisma/client";
+import type { AgentLink, Property, Testimonial } from "@prisma/client";
+import type { SafeAgent } from "@/lib/prisma";
 import { formatAED, rentalLabel, rentalSuffix } from "@/lib/format";
 import { BIO_MAX_LENGTH, EMIRATES, LANGUAGES, LISTINGS_ENABLED } from "@/lib/constants";
 import { isValidSlug } from "@/lib/validation";
@@ -39,7 +40,7 @@ import {
   CloseIcon,
 } from "@/components/icons";
 
-type AgentWithProperties = Agent & { properties: Property[]; links: AgentLink[]; testimonials: Testimonial[] };
+type AgentWithProperties = SafeAgent & { properties: Property[]; links: AgentLink[]; testimonials: Testimonial[] };
 
 type ProfileTab = "identity" | "contact" | "social" | "about" | "expertise" | "testimonials";
 

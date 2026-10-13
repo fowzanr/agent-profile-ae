@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { AgentLink } from "@prisma/client";
 import { ChevronRightIcon, LinkIcon } from "@/components/icons";
+import { useMediaConsent } from "@/lib/mediaConsent";
 import { LINK_KIND_LABELS, displayHost, embedFor, kindOf, type Embed, type LinkKind } from "@/lib/featuredLinks";
 
 const KIND_ICON_PATHS: Record<LinkKind, string> = {
@@ -58,6 +59,38 @@ function EmbedPlayer({ embed, title }: { embed: Embed; title: string }) {
       </audio>
     );
   }
+  return <IframeEmbed embed={embed} title={title} />;
+}
+
+const PROVIDER_NAMES = { spotify: "Spotify", apple: "Apple Podcasts", soundcloud: "SoundCloud" } as const;
+
+/** Third-party players load only after the visitor taps or has allowed embedded media (Cookie choices). */
+function IframeEmbed({ embed, title }: { embed: Extract<Embed, { type: "iframe" }>; title: string }) {
+  const [consent, setConsent] = useMediaConsent();
+  const [loadedOnce, setLoadedOnce] = useState(false);
+  const provider = PROVIDER_NAMES[embed.provider];
+
+  if (consent !== "allowed" && !loadedOnce) {
+    return (
+      <div className="feat-embed-gate" style={{ minHeight: Math.min(embed.height, 152) }}>
+        <button type="button" className="feat-embed-load" onClick={() => setLoadedOnce(true)}>
+          <span className="feat-video-play feat-embed-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M8 5.5v13l11-6.5-11-6.5Z" />
+            </svg>
+          </span>
+          <span className="feat-embed-text">
+            <span className="feat-embed-title">Play on {provider}</span>
+            <span className="feat-embed-sub">Loads the {provider} player, which may set its own cookies.</span>
+          </span>
+        </button>
+        <button type="button" className="feat-embed-always" onClick={() => setConsent(true)}>
+          Always allow media players
+        </button>
+      </div>
+    );
+  }
+
   return (
     <iframe
       className="feat-iframe"

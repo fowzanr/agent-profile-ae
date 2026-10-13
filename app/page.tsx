@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { slugify } from "@/lib/slug";
+import { CookieChoicesDialog } from "@/components/CookieChoicesDialog";
 import {
   WhatsAppIcon,
   PhoneIcon,
@@ -215,6 +216,8 @@ export default function Home() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [navOpen, setNavOpen] = useState(false);
+  const [cookiesOpen, setCookiesOpen] = useState(false);
+  const closeCookies = useCallback(() => setCookiesOpen(false), []);
   const navRef = useRef<HTMLDivElement>(null);
   const { ref: stepsHeadingRef, className: stepsHeadingClass } = useReveal<HTMLDivElement>();
   const { ref: featuresHeadingRef, className: featuresHeadingClass } = useReveal<HTMLDivElement>();
@@ -545,10 +548,15 @@ export default function Home() {
       <footer className="land-footer">
         <span>agentprofile.ae — your trusted address in UAE real estate</span>
         <div className="land-footer-links">
+          <Link href="/privacy">Privacy</Link>
+          <button type="button" className="land-footer-btn" onClick={() => setCookiesOpen(true)}>
+            Cookie choices
+          </button>
           <Link href="/login">Log in</Link>
           <Link href="/signup">Sign up</Link>
         </div>
       </footer>
+      {cookiesOpen && <CookieChoicesDialog onClose={closeCookies} />}
     </div>
   );
 }

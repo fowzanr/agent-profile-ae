@@ -4,6 +4,8 @@ import { LISTINGS_ENABLED } from "@/lib/constants";
 export async function getAgentBySlug(slug: string) {
   const agent = await prisma.agent.findUnique({
     where: { slug },
+    // Public page: secrets are omitted globally; the login email is private too.
+    omit: { email: true },
     include: {
       properties: { orderBy: { createdAt: "desc" } },
       testimonials: { orderBy: { createdAt: "desc" } },

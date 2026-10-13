@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BriefcaseIcon, MenuIcon, CloseIcon, TrendingUpIcon, MessageIcon } from "@/components/icons";
+import { BriefcaseIcon, MenuIcon, CloseIcon, TrendingUpIcon, MessageIcon, FlagIcon } from "@/components/icons";
 
 const NAV = [
   { href: "/admin", label: "Overview", icon: TrendingUpIcon, exact: true },
   { href: "/admin/agents", label: "Agents", icon: BriefcaseIcon, exact: false },
   { href: "/admin/leads", label: "Leads & analytics", icon: MessageIcon, exact: false },
+  { href: "/admin/reports", label: "Reports", icon: FlagIcon, exact: false },
 ];
 
 function isActive(pathname: string, href: string, exact: boolean) {

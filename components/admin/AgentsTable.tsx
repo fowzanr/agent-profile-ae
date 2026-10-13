@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Agent } from "@prisma/client";
+import type { SafeAgent } from "@/lib/prisma";
 
-type TableAgent = Agent & { properties: { id: string }[] };
+type TableAgent = SafeAgent & { properties: { id: string }[] };
 
 function buildHref(page: number, q: string, status: string) {
   const params = new URLSearchParams();

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Agent } from "@prisma/client";
+import type { SafeAgent } from "@/lib/prisma";
 
-type QueueAgent = Agent & { properties: { id: string }[] };
+type QueueAgent = SafeAgent & { properties: { id: string }[] };
 
 export function PendingReviewList({ agents }: { agents: QueueAgent[] }) {
   const [list, setList] = useState(agents);

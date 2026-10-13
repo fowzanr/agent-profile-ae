@@ -2,7 +2,8 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import type { Agent, AgentLink, Property, Testimonial } from "@prisma/client";
+import type { AgentLink, Property, Testimonial } from "@prisma/client";
+import type { PublicAgent } from "@/lib/prisma";
 import { PropertyArt } from "@/components/PropertyArt";
 import { formatAED, formatAEDCompact, csvToList, rentalSuffix, rentalLabel, RENTAL_PERIODS } from "@/lib/format";
 import { track } from "@/lib/track";
@@ -25,6 +26,7 @@ import {
 import { SOCIAL_ICONS } from "@/components/socialIcons";
 import { BookingDialog } from "@/components/BookingDialog";
 import { FeaturedLinks } from "@/components/FeaturedLinks";
+import { ProfileFooterLinks } from "@/components/ProfileFooter";
 import { availabilityOf } from "@/lib/booking";
 import { SOCIAL_PLATFORMS, hasAnySocial } from "@/lib/socials";
 import { truncateBio } from "@/lib/bioGenerator";
@@ -40,7 +42,7 @@ function waLink(phone: string, message: string) {
 
 const VISIBLE_LIMIT = 4;
 
-type AgentWithRelations = Agent & {
+type AgentWithRelations = PublicAgent & {
   properties: Property[];
   testimonials: Testimonial[];
   links: AgentLink[];
@@ -653,6 +655,7 @@ export function ProfileView({
             <ShareIcon className="w-[14px] h-[14px]" />
             {shareLabel}
           </button>
+          <ProfileFooterLinks agent={agent} />
           <p className="fineprint">
             agentprofile.ae/{agent.slug} — your trusted address in UAE real estate
           </p>
