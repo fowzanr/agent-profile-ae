@@ -246,6 +246,7 @@ export function ProfileView({
         <BookingDialog
           agentId={agent.id}
           agentFirstName={agent.name.split(" ")[0]}
+          agentWhatsapp={agent.whatsapp}
           availability={availabilityOf(agent)}
           onClose={() => setBookingOpen(false)}
         />

@@ -10,11 +10,13 @@ const createSchema = z.object({
   agentId: z.string().min(1),
   propertyId: z.string().optional().nullable(),
   name: z.string().min(1).max(100),
-  contact: z.string().min(1).max(200),
+  contact: z.string().max(200).optional(),
   message: z.string().max(2000).optional(),
   channel: z.enum(["form", "book"]).optional(),
   preferredDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a valid date").optional(),
   preferredTime: z.string().regex(TIME_PATTERN, "Pick a valid time").optional(),
+  // "whatsapp" when the visitor also sent the request to the agent from their own WhatsApp.
+  via: z.enum(["whatsapp"]).optional(),
 });
 
 export async function POST(req: Request) {
@@ -35,6 +37,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const viaWhatsApp = parsed.data.via === "whatsapp";
+  const contact = parsed.data.contact?.trim() || (viaWhatsApp ? "Their WhatsApp number" : "");
+  if (!contact) {
+    return NextResponse.json({ error: "Add a phone number or email" }, { status: 400 });
+  }
+
   const isBooking = parsed.data.channel === "book";
   const { preferredDate, preferredTime } = parsed.data;
   if (isBooking) {
@@ -46,14 +54,18 @@ export async function POST(req: Request) {
     }
   }
   const when = preferredDate && preferredTime ? formatBookingTime(preferredDate, preferredTime) : "";
-  const message = [when ? `Preferred time: ${when}` : null, parsed.data.message || null].filter(Boolean).join("\n\n");
+  const message = [
+    viaWhatsApp ? "Sent via WhatsApp" : null,
+    when ? `Preferred time: ${when}` : null,
+    parsed.data.message || null,
+  ].filter(Boolean).join("\n\n");
 
   const lead = await prisma.lead.create({
     data: {
       agentId: parsed.data.agentId,
       propertyId: parsed.data.propertyId || null,
       name: parsed.data.name,
-      contact: parsed.data.contact,
+      contact,
       message: message || null,
       channel: parsed.data.channel ?? "form",
     },
@@ -64,16 +76,20 @@ export async function POST(req: Request) {
     const kind = isBooking ? "booking request" : "message";
     await sendEmail({
       to: notifyEmail,
-      subject: `New ${kind} from ${parsed.data.name} — agentprofile.ae`,
+      subject: `New ${kind} from ${parsed.data.name}${viaWhatsApp ? " (via WhatsApp)" : ""} — agentprofile.ae`,
       text: [
         `You have a new ${kind} on your agentprofile.ae page.`,
         "",
         `Name: ${parsed.data.name}`,
-        `Contact: ${parsed.data.contact}`,
+        `Contact: ${contact}`,
         when ? `Preferred time: ${when}` : "",
         parsed.data.message ? `\nMessage:\n${parsed.data.message}` : "",
         "",
-        isBooking ? "Reply to them directly to confirm the viewing." : "",
+        viaWhatsApp
+          ? "They were also asked to send this to you on WhatsApp. Look for their message there to confirm the viewing."
+          : isBooking
+            ? "Reply to them directly to confirm the viewing."
+            : "",
       ].join("\n"),
     }).catch(() => {});
   }
