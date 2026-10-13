@@ -1611,6 +1611,11 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
 .booking-empty { margin: 0; font-size: 13px; color: var(--text-muted); }
 @media (min-width: 560px) { .booking-days { margin: 0 -24px; padding: 2px 24px 4px; scroll-padding-inline: 24px; } }
 .booking-submit { width: 100%; }
+.booking-actions { display: flex; flex-direction: column; gap: 8px; }
+.booking-wa { width: 100%; border: 0; text-decoration: none; }
+.booking-wa:disabled { opacity: 0.5; cursor: not-allowed; }
+.booking-alt { width: 100%; }
+.booking-done-icon.wa { background: color-mix(in srgb, var(--whatsapp) 16%, transparent); color: var(--whatsapp); }
 .booking-done { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 18px 8px 4px; }
 .booking-done p { margin: 0 0 6px; font-size: 13.5px; line-height: 1.55; color: var(--text-muted); }
 .booking-done .btn-primary { width: 100%; }

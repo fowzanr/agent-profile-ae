@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarIcon, CheckIcon, CloseIcon } from "@/components/icons";
-import { bookableDates, dubaiNow, openSlots, type BookingAvailability } from "@/lib/booking";
+import { CalendarIcon, CheckIcon, CloseIcon, WhatsAppIcon } from "@/components/icons";
+import { bookableDates, dubaiNow, formatBookingTime, openSlots, type BookingAvailability } from "@/lib/booking";
 
 function dayChip(date: string): { weekday: string; day: string; month: string } {
   const d = new Date(`${date}T12:00:00Z`);
@@ -13,15 +13,31 @@ function dayChip(date: string): { weekday: string; day: string; month: string } 
   };
 }
 
-/** Booking request form shown when the agent takes bookings through the platform; the request is emailed to them. */
+/** The pre-filled WhatsApp message the visitor sends to the agent. */
+export function bookingWhatsAppMessage(agentFirstName: string, name: string, date: string, time: string, note: string) {
+  return [
+    `Hi ${agentFirstName}, I'd like to book a viewing on ${formatBookingTime(date, time)}.`,
+    note ? `\n${note}` : null,
+    `\n— ${name} (via agentprofile.ae)`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+/**
+ * Booking request form shown when the agent takes bookings through the platform. Visitors either send the
+ * request on WhatsApp (pre-filled chat to the agent) or by email. Both are saved and emailed to the agent.
+ */
 export function BookingDialog({
   agentId,
   agentFirstName,
+  agentWhatsapp,
   availability,
   onClose,
 }: {
   agentId: string;
   agentFirstName: string;
+  agentWhatsapp: string;
   availability: BookingAvailability;
   onClose: () => void;
 }) {
@@ -35,7 +51,9 @@ export function BookingDialog({
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [sent, setSent] = useState<"email" | "whatsapp" | null>(null);
+  const [waUrl, setWaUrl] = useState("");
+  const waDigits = agentWhatsapp.replace(/[^\d]/g, "");
   const firstFieldRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -50,27 +68,57 @@ export function BookingDialog({
     };
   }, [onClose]);
 
+  function validate(needContact: boolean): string | null {
+    if (!name.trim()) return "Add your name.";
+    if (needContact && !contact.trim()) return "Add a phone number or email so we can confirm.";
+    if (!date) return "Pick a day.";
+    if (!slot) return "Pick a time.";
+    return null;
+  }
+
+  function leadBody(via?: "whatsapp") {
+    return JSON.stringify({
+      agentId,
+      channel: "book",
+      name: name.trim(),
+      contact: contact.trim() || undefined,
+      preferredDate: date,
+      preferredTime: slot,
+      message: note.trim() || undefined,
+      via,
+    });
+  }
+
+  // Opens WhatsApp straight from the tap (so phones don't block it) and saves the request in the background.
+  function sendOnWhatsApp() {
+    setError(null);
+    const problem = validate(false);
+    if (problem) return setError(problem);
+    const url = `https://wa.me/${waDigits}?text=${encodeURIComponent(
+      bookingWhatsAppMessage(agentFirstName, name.trim(), date, slot!, note.trim()),
+    )}`;
+    fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: leadBody("whatsapp"),
+      keepalive: true,
+    }).catch(() => {});
+    window.open(url, "_blank", "noopener");
+    setWaUrl(url);
+    setSent("whatsapp");
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!name.trim()) return setError("Add your name.");
-    if (!contact.trim()) return setError("Add a phone number or email so we can confirm.");
-    if (!date) return setError("Pick a day.");
-    if (!slot) return setError("Pick a time.");
+    const problem = validate(true);
+    if (problem) return setError(problem);
 
     setSending(true);
     const res = await fetch("/api/leads", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        agentId,
-        channel: "book",
-        name: name.trim(),
-        contact: contact.trim(),
-        preferredDate: date,
-        preferredTime: slot,
-        message: note.trim() || undefined,
-      }),
+      body: leadBody(),
     }).catch(() => null);
     setSending(false);
 
@@ -79,7 +127,7 @@ export function BookingDialog({
       setError(data?.error ?? "Couldn't send your request. Try again in a moment.");
       return;
     }
-    setSent(true);
+    setSent("email");
   }
 
   return (
@@ -95,7 +143,25 @@ export function BookingDialog({
           <CloseIcon className="w-4 h-4" />
         </button>
 
-        {sent ? (
+        {sent === "whatsapp" ? (
+          <div className="booking-done">
+            <span className="booking-done-icon wa">
+              <WhatsAppIcon className="w-5 h-5" />
+            </span>
+            <h3 id="booking-title">Finish in WhatsApp</h3>
+            <p>
+              Your message to {agentFirstName} is ready in WhatsApp. Tap <strong>send</strong> there so they get it,
+              then {agentFirstName} will confirm the time.
+            </p>
+            <a href={waUrl} target="_blank" rel="noopener noreferrer" className="cta-primary booking-wa">
+              <WhatsAppIcon className="w-4 h-4" />
+              Open WhatsApp again
+            </a>
+            <button type="button" className="btn-secondary booking-alt" onClick={onClose}>
+              Done
+            </button>
+          </div>
+        ) : sent ? (
           <div className="booking-done">
             <span className="booking-done-icon">
               <CheckIcon className="w-5 h-5" />
@@ -135,7 +201,10 @@ export function BookingDialog({
                 />
               </div>
               <div className="field">
-                <label htmlFor="booking-contact">Phone or email</label>
+                <label htmlFor="booking-contact">
+                  Phone or email{" "}
+                  {waDigits && <span className="booking-optional">(not needed for WhatsApp)</span>}
+                </label>
                 <input
                   id="booking-contact"
                   value={contact}
@@ -210,9 +279,26 @@ export function BookingDialog({
               </div>
             </div>
 
-            <button type="submit" className="btn-primary booking-submit" disabled={sending || dates.length === 0}>
-              {sending ? "Sending…" : "Request booking"}
-            </button>
+            <div className="booking-actions">
+              {waDigits && (
+                <button
+                  type="button"
+                  className="cta-primary booking-wa"
+                  onClick={sendOnWhatsApp}
+                  disabled={sending || dates.length === 0}
+                >
+                  <WhatsAppIcon className="w-4 h-4" />
+                  Send on WhatsApp
+                </button>
+              )}
+              <button
+                type="submit"
+                className={waDigits ? "btn-secondary booking-alt" : "btn-primary booking-submit"}
+                disabled={sending || dates.length === 0}
+              >
+                {sending ? "Sending…" : waDigits ? "Request by email instead" : "Request booking"}
+              </button>
+            </div>
           </form>
         )}
       </div>
