@@ -74,6 +74,7 @@ model Agent {
   links           AgentLink[]
   analyticsEvents AnalyticsEvent[]
   leads           Lead[]
+  reports         Report[]
 }
 
 model AgentLink {
@@ -163,4 +164,17 @@ model AnalyticsEvent {
   createdAt  DateTime  @default(now())
 
   @@index([agentId, createdAt])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  reason    String // see lib/reports.ts REPORT_REASONS
+  details   String?
+  contact   String?
+  status    String   @default("open") // "open" | "resolved"
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
 }

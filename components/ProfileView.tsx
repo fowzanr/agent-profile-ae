@@ -26,6 +26,7 @@ import {
 import { SOCIAL_ICONS } from "@/components/socialIcons";
 import { BookingDialog } from "@/components/BookingDialog";
 import { FeaturedLinks } from "@/components/FeaturedLinks";
+import { ProfileFooterLinks } from "@/components/ProfileFooter";
 import { availabilityOf } from "@/lib/booking";
 import { SOCIAL_PLATFORMS, hasAnySocial } from "@/lib/socials";
 import { truncateBio } from "@/lib/bioGenerator";
@@ -654,6 +655,7 @@ export function ProfileView({
             <ShareIcon className="w-[14px] h-[14px]" />
             {shareLabel}
           </button>
+          <ProfileFooterLinks agent={agent} />
           <p className="fineprint">
             agentprofile.ae/{agent.slug} — your trusted address in UAE real estate
           </p>
