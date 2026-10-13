@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Agent, Lead, Property } from "@prisma/client";
+import type { Lead, Property } from "@prisma/client";
+import type { SafeAgent } from "@/lib/prisma";
 import { formatAED } from "@/lib/format";
 import { SOCIAL_PLATFORMS, hasAnySocial, socialUrlsOf, type SocialUrls } from "@/lib/socials";
 import { RERA_BROKERS_URL } from "@/lib/constants";
 
-type AgentWithRelations = Agent & { properties: Property[]; leads: Lead[] };
+type AgentWithRelations = SafeAgent & { properties: Property[]; leads: Lead[] };
 
 type FormState = {
   name: string;

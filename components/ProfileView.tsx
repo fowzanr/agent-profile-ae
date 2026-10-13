@@ -2,7 +2,8 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import type { Agent, AgentLink, Property, Testimonial } from "@prisma/client";
+import type { AgentLink, Property, Testimonial } from "@prisma/client";
+import type { PublicAgent } from "@/lib/prisma";
 import { PropertyArt } from "@/components/PropertyArt";
 import { formatAED, formatAEDCompact, csvToList, rentalSuffix, rentalLabel, RENTAL_PERIODS } from "@/lib/format";
 import { track } from "@/lib/track";
@@ -40,7 +41,7 @@ function waLink(phone: string, message: string) {
 
 const VISIBLE_LIMIT = 4;
 
-type AgentWithRelations = Agent & {
+type AgentWithRelations = PublicAgent & {
   properties: Property[];
   testimonials: Testimonial[];
   links: AgentLink[];

@@ -23,7 +23,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const limit = rateLimit(`agent-login:${getClientIp(request)}`, 10, 15 * 60 * 1000);
         if (!limit.ok) return null;
 
-        const agent = await prisma.agent.findUnique({ where: { email } });
+        // passwordHash is omitted globally (lib/prisma.ts); login is the one place that reads it.
+        const agent = await prisma.agent.findUnique({ where: { email }, omit: { passwordHash: false } });
         if (!agent) return null;
 
         const valid = await bcrypt.compare(password, agent.passwordHash);

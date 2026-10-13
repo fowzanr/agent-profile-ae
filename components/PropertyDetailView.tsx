@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Agent, Property } from "@prisma/client";
+import type { Property } from "@prisma/client";
+import type { PublicAgent } from "@/lib/prisma";
 import { PropertyArt } from "@/components/PropertyArt";
 import { formatAED, rentalSuffix, rentalLabel } from "@/lib/format";
 import { furnishingLabel, ownershipLabel, usageLabel, mapsLink } from "@/lib/propertyMeta";
@@ -30,7 +31,7 @@ function waLink(phone: string, message: string) {
   return `https://wa.me/${digitsOnly(phone)}?text=${encodeURIComponent(message)}`;
 }
 
-export function PropertyDetailView({ property, agent }: { property: Property; agent: Agent }) {
+export function PropertyDetailView({ property, agent }: { property: Property; agent: PublicAgent }) {
   const [saved, setSaved] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const [shareLabel, setShareLabel] = useState("Share");
