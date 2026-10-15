@@ -134,7 +134,7 @@ export function CheckIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 24 24" fill="none">
       <path
         d="M4.5 12.5l5 5L19.5 7"
-        stroke="#241B04"
+        stroke="currentColor"
         strokeWidth={3}
         strokeLinecap="round"
         strokeLinejoin="round"
