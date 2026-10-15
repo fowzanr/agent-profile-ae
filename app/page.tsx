@@ -373,6 +373,10 @@ export default function Home() {
                       <span className="stat-value">8</span>
                       <span className="stat-label">Years experience</span>
                     </div>
+                    <div className="stat-item">
+                      <span className="stat-value">45M</span>
+                      <span className="stat-label">AED transacted</span>
+                    </div>
                   </div>
                   <div className="profile-divider" aria-hidden="true">
                     <span className="profile-divider-dot" />
