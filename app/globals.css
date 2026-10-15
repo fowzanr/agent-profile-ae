@@ -1286,7 +1286,7 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
 .land-mockup-card .agency { font-size: 12.5px; }
 .land-mockup-card .stat-item { padding: 0 10px; gap: 4px; }
 .land-mockup-card .stat-item:nth-child(odd) { padding-left: 0; }
-@media (max-width: 360px) {
+@media (max-width: 400px) {
   .land-mockup-card .stat-strip { grid-template-columns: auto; row-gap: 4px; }
   .land-mockup-card .stat-item { padding: 0; border-left: none !important; }
 }
