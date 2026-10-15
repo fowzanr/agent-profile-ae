@@ -228,25 +228,19 @@ button { font: inherit; }
   background: linear-gradient(90deg, var(--border) 0%, var(--border) 40%, transparent 100%);
 }
 
-/* Profile stats: number and label on one line with thin dividers. One left-aligned row on
-   wider screens; two pairs (2×2) on phones so four stats never overflow or wrap mid-row. */
+/* Profile stats: number and label on one line with thin dividers, as two pairs (2×2) at every
+   width so the longer labels ("Years experience", "AED transacted") never overflow. */
 .stat-strip { display: grid; grid-template-columns: auto auto; justify-content: start; align-items: baseline; row-gap: 8px; padding: 2px 0; }
 .stat-item { display: flex; align-items: baseline; gap: 5px; padding: 0 14px; white-space: nowrap; }
 .stat-item:nth-child(odd) { padding-left: 0; }
 .stat-item:nth-child(even) { border-left: 1px solid var(--border); }
 .stat-value { font-family: var(--font-jakarta), sans-serif; font-weight: 700; font-size: 15px; line-height: 1.2; color: var(--text); font-variant-numeric: tabular-nums; }
 .stat-label { font-size: 9.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); opacity: .85; }
-@media (min-width: 440px) {
-  .stat-strip { display: flex; flex-wrap: nowrap; }
-  .stat-item { padding: 0 12px; }
-  .stat-item:nth-child(odd) { padding-left: 12px; }
-  .stat-item:first-child { padding-left: 0; }
-  .stat-item + .stat-item { border-left: 1px solid var(--border); }
-}
 @media (max-width: 340px) {
-  .stat-item { padding: 0 10px; gap: 4px; }
+  .stat-item { padding: 0 8px; gap: 4px; }
+  .stat-item:nth-child(odd) { padding-left: 0; }
   .stat-value { font-size: 14px; }
-  .stat-label { font-size: 9px; letter-spacing: .04em; }
+  .stat-label { font-size: 9px; letter-spacing: 0; }
 }
 
 .cta-primary {
@@ -1290,12 +1284,14 @@ footer.site-footer { display: flex; flex-direction: column; align-items: center;
 .land-mockup-card .mockup-name { font-family: var(--font-jakarta), sans-serif; font-weight: 800; font-size: 19px; line-height: 1.2; letter-spacing: -.01em; color: #fff; }
 .land-mockup-card .role-line { font-size: 12.5px; }
 .land-mockup-card .agency { font-size: 12.5px; }
-.land-mockup-card .stat-strip { display: flex; flex-wrap: nowrap; }
 .land-mockup-card .stat-item { padding: 0 10px; gap: 4px; }
+.land-mockup-card .stat-item:nth-child(odd) { padding-left: 0; }
+@media (max-width: 360px) {
+  .land-mockup-card .stat-strip { grid-template-columns: auto; row-gap: 4px; }
+  .land-mockup-card .stat-item { padding: 0; border-left: none !important; }
+}
 .land-mockup-card .stat-value { font-size: 14px; }
 .land-mockup-card .stat-label { font-size: 9px; letter-spacing: .05em; }
-.land-mockup-card .stat-item:first-child { padding-left: 0; }
-.land-mockup-card .stat-item + .stat-item { border-left: 1px solid var(--border); }
 .land-mockup-socials { margin-top: 0; gap: 14px; }
 .land-mockup-example {
   position: absolute; top: 12px; left: 12px; z-index: 1; padding: 4px 9px; border-radius: 999px;

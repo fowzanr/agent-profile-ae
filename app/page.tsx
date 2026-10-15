@@ -371,7 +371,7 @@ export default function Home() {
                     </div>
                     <div className="stat-item">
                       <span className="stat-value">8</span>
-                      <span className="stat-label">Years</span>
+                      <span className="stat-label">Years experience</span>
                     </div>
                   </div>
                   <div className="profile-divider" aria-hidden="true">
