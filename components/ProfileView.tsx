@@ -331,12 +331,12 @@ export function ProfileView({
             </div>
             <div className="stat-item">
               <CountUp className="stat-value" value={agent.yearsExperience} />
-              <span className="stat-label">{agent.yearsExperience === 1 ? "Year" : "Years"}</span>
+              <span className="stat-label">{agent.yearsExperience === 1 ? "Year experience" : "Years experience"}</span>
             </div>
             {agent.transactedVolume != null && (
               <div className="stat-item">
                 <CountUp className="stat-value" value={formatAEDCompact(agent.transactedVolume).replace("AED ", "")} />
-                <span className="stat-label">AED volume</span>
+                <span className="stat-label">AED transacted</span>
               </div>
             )}
           </div>

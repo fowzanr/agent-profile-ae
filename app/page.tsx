@@ -300,7 +300,7 @@ export default function Home() {
           <div className="land-hero-copy">
             <span className="land-eyebrow">Built for UAE real estate agents</span>
             <h1>
-              Your real estate career.
+              Your real&nbsp;estate career.
               <br />
               <span className="land-accent">One link.</span>
             </h1>
@@ -371,7 +371,7 @@ export default function Home() {
                     </div>
                     <div className="stat-item">
                       <span className="stat-value">8</span>
-                      <span className="stat-label">Years</span>
+                      <span className="stat-label">Years experience</span>
                     </div>
                   </div>
                   <div className="profile-divider" aria-hidden="true">
